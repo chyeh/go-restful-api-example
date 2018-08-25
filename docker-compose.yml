@@ -1,0 +1,21 @@
+version: '2'
+services:
+    go:
+        build: .
+        ports:
+            - "80:80"
+        links:
+            - postgres
+        environment:
+            DEBUG: 'true'
+            PORT: '80'
+    postgres:
+        image: onjin/alpine-postgres:9.5
+        restart: unless-stopped
+        ports:
+            - "5432:5432"
+        environment:
+            LC_ALL: C.UTF-8
+            POSTGRES_USER: hellofresh
+            POSTGRES_PASSWORD: hellofresh
+            POSTGRES_DB: hellofresh
