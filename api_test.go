@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 
@@ -90,13 +91,13 @@ var _ = Describe("Adding a recipe", func() {
 		server := newTestAPIServer(Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/recipes", newJSON([]byte(`
-		{  
-			"name":"name3",
-			"prepare_time":5,
-			"difficulty":null,
-			"is_vegetarian":false
-		}
-		`)).buffer())
+			{
+				"name":"name3",
+				"prepare_time":5,
+				"difficulty":null,
+				"is_vegetarian":false
+			}
+			`)).buffer())
 		req.Header.Set("Content-Type", "application/json")
 
 		server.httpServer.router.ServeHTTP(rr, req)
@@ -109,5 +110,22 @@ var _ = Describe("Adding a recipe", func() {
 		Expect(jsonObj.Get("prepare_time").MustInt()).To(Equal(5))
 		Expect(jsonObj.Get("difficulty").Interface()).To(BeNil())
 		Expect(jsonObj.Get("is_vegetarian").MustBool()).To(BeFalse())
+	})
+
+	It("responses with [400 Bad Request] when getting an invalid JSON argument", func() {
+		server := newTestAPIServer(nil)
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/recipes", bytes.NewBuffer([]byte(`
+		{  
+			"name":"name3",
+			"prepare_time":5,
+			"difficulty":null,
+			"is_vegetarian":false,
+		}
+		`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusBadRequest))
 	})
 })
