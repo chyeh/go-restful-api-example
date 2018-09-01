@@ -16,6 +16,7 @@ type Recipe struct {
 
 type datastore interface {
 	listRecipes() []Recipe
+	addRecipe(PostRecipeArg) Recipe
 }
 
 type sqlxPostgreSQL struct {
@@ -30,8 +31,27 @@ func newSqlxPostgreSQL(connectionString string) *sqlxPostgreSQL {
 
 func (d *sqlxPostgreSQL) listRecipes() []Recipe {
 	var res []Recipe
-	if err := d.sqlxDB.Select(&res, "SELECT * FROM recipe"); err != nil {
+	if err := d.sqlxDB.Select(&res, `
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	`); err != nil {
 		panic(err)
 	}
+	return res
+}
+
+func (d *sqlxPostgreSQL) addRecipe(arg PostRecipeArg) Recipe {
+	var res Recipe
+	tx := d.sqlxDB.MustBegin()
+	tx.MustExec(`
+	INSERT INTO recipe(r_name, r_prep_time, r_difficulty, r_vegetarian)
+	VALUES ($1, $2, $3, $4)
+	`, arg.Name, arg.PrepareTime, arg.Difficulty, arg.IsVegetarian)
+	tx.Get(&res, `
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	WHERE r_id = (
+		SELECT currval(pg_get_serial_sequence('recipe','r_id'))
+	)
+	`)
+	tx.Commit()
 	return res
 }
