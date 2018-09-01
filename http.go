@@ -21,7 +21,6 @@ type ginHTTPServer struct {
 func newGinHTTPServer(cfg ginHTTPServerConfig) *ginHTTPServer {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	setRoutes(router)
 	return &ginHTTPServer{
 		router:  router,
 		address: net.JoinHostPort(cfg.host, cfg.port),
@@ -34,8 +33,4 @@ func (s *ginHTTPServer) run() {
 		fmt.Fprintln(os.Stderr, "error starting http service:", err)
 		os.Exit(1)
 	}
-}
-
-func setRoutes(router *gin.Engine) {
-	router.GET("/recipes", listRecipe)
 }
