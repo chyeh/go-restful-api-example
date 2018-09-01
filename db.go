@@ -14,6 +14,10 @@ type Recipe struct {
 	IsVegetarian bool     `json:"is_vegetarian" db:"r_vegetarian"`
 }
 
+type datastore interface {
+	listRecipes() []Recipe
+}
+
 type sqlxPostgreSQL struct {
 	sqlxDB *sqlx.DB
 }

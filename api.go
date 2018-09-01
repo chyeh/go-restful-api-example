@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"net"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,16 +15,15 @@ type apiServerConfig struct {
 
 type apiServer struct {
 	httpServer *ginHTTPServer
-	datastore  *sqlxPostgreSQL
+	address    string
+	datastore  datastore
 }
 
 func newAPIServer(cfg apiServerConfig) *apiServer {
-	httpServer := newGinHTTPServer(ginHTTPServerConfig{
-		host: cfg.host,
-		port: cfg.port,
-	})
+	httpServer := newGinHTTPServer()
 	apiServer := &apiServer{
 		httpServer: httpServer,
+		address:    net.JoinHostPort(cfg.host, cfg.port),
 		datastore:  newSqlxPostgreSQL(cfg.connectionString),
 	}
 	apiServer.routes()
@@ -29,7 +31,8 @@ func newAPIServer(cfg apiServerConfig) *apiServer {
 }
 
 func (s *apiServer) run() {
-	s.httpServer.run()
+	fmt.Println("starting http service on:", s.address)
+	s.httpServer.run(s.address)
 }
 
 func (s *apiServer) routes() {

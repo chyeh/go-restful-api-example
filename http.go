@@ -2,34 +2,25 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
-type ginHTTPServerConfig struct {
-	host string
-	port string
-}
-
 type ginHTTPServer struct {
-	router  *gin.Engine
-	address string
+	router *gin.Engine
 }
 
-func newGinHTTPServer(cfg ginHTTPServerConfig) *ginHTTPServer {
+func newGinHTTPServer() *ginHTTPServer {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	return &ginHTTPServer{
-		router:  router,
-		address: net.JoinHostPort(cfg.host, cfg.port),
+		router: router,
 	}
 }
 
-func (s *ginHTTPServer) run() {
-	fmt.Println("starting http service on:", s.address)
-	if err := s.router.Run(s.address); err != nil {
+func (s *ginHTTPServer) run(address string) {
+	if err := s.router.Run(address); err != nil {
 		fmt.Fprintln(os.Stderr, "error starting http service:", err)
 		os.Exit(1)
 	}
