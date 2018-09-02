@@ -181,6 +181,57 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual.Difficulty.Int64).To(Equal(int64(4)))
 			Expect(actual.IsVegetarian).To(BeFalse())
 		})
+	})
+	Context("deleting a recipe", func() {
+		BeforeEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
 
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS recipe
+			`)
+			testDB.sqlxDB.MustExec(`
+			CREATE TABLE recipe(
+				r_id SERIAL PRIMARY KEY,
+				r_name VARCHAR(512) NOT NULL,
+				r_prep_time SMALLINT,
+				r_difficulty SMALLINT,
+				r_vegetarian BOOLEAN NOT NULL
+			)
+			`)
+		})
+		AfterEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE recipe
+			`)
+		})
+		It("deletes a existent record in the recipe table", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.addRecipe(&PostRecipeArg{
+				Name:         null.NewString("name1", true),
+				PrepareTime:  null.NewInt(1, true),
+				Difficulty:   null.NewInt(2, true),
+				IsVegetarian: null.NewBool(false, true),
+			})
+			testDB.addRecipe(&PostRecipeArg{
+				Name:         null.NewString("name2", true),
+				PrepareTime:  null.NewInt(2, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(true, true),
+			})
+			testDB.deleteRecipeByID(1)
+			testDB.getRecipeByID(1)
+			Expect(testDB.getRecipeByID(1)).To(BeNil())
+			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
+			Expect(testDB.listRecipes()).To(HaveLen(1))
+			testDB.deleteRecipeByID(2)
+			Expect(testDB.getRecipeByID(2)).To(BeNil())
+			Expect(testDB.listRecipes()).To(HaveLen(0))
+		})
 	})
 })
