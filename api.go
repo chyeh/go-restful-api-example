@@ -36,16 +36,16 @@ func (s *apiServer) run() {
 }
 
 func (s *apiServer) routes() {
-	s.httpServer.router.GET("/recipes", s.GetRecipes)
-	s.httpServer.router.POST("/recipes", s.PostRecipes)
+	s.httpServer.router.GET("/recipes", s.getRecipes)
+	s.httpServer.router.POST("/recipes", s.postRecipes)
 }
 
-func (s *apiServer) GetRecipes(c *gin.Context) {
+func (s *apiServer) getRecipes(c *gin.Context) {
 	res := s.datastore.listRecipes()
 	c.JSON(200, res)
 }
 
-func (s *apiServer) PostRecipes(c *gin.Context) {
+func (s *apiServer) postRecipes(c *gin.Context) {
 	arg := PostRecipeArg{}
 	if err := c.BindJSON(&arg); err == nil {
 		res := s.datastore.addRecipe(arg)
