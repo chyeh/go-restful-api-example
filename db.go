@@ -49,10 +49,10 @@ func (d *sqlxPostgreSQL) listRecipes() []*Recipe {
 func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg) *Recipe {
 	var res Recipe
 	tx := d.sqlxDB.MustBegin()
-	tx.MustExec(`
+	tx.NamedExec(`
 	INSERT INTO recipe(r_name, r_prep_time, r_difficulty, r_vegetarian)
-	VALUES ($1, $2, $3, $4)
-	`, arg.Name, arg.PrepareTime, arg.Difficulty, arg.IsVegetarian)
+	VALUES (:r_name, :r_prep_time, :r_difficulty, :r_vegetarian)
+	`, arg)
 	tx.Get(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
 	WHERE r_id = (
