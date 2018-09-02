@@ -42,6 +42,8 @@ func newTestAPIServer(data interface{}) *apiServer {
 	return s
 }
 
+func (md *mockDatastore) deleteRecipeByID(id int) {}
+
 var _ = Describe("Listing recipes", func() {
 	It("lists non-empty results", func() {
 		server := newTestAPIServer([]*Recipe{
@@ -75,7 +77,6 @@ var _ = Describe("Listing recipes", func() {
 		]
 		`))
 	})
-
 	It("lists empty results", func() {
 		server := newTestAPIServer([]*Recipe{})
 		rr := httptest.NewRecorder()
@@ -94,7 +95,7 @@ var _ = Describe("Listing recipes", func() {
 })
 
 var _ = Describe("Adding a recipe", func() {
-	It("adds a recipe and return the resulting JSON object", func() {
+	It("adds a recipe and returns the resulting JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/recipes", newJSON([]byte(`
@@ -118,7 +119,6 @@ var _ = Describe("Adding a recipe", func() {
 		Expect(jsonObj.Get("difficulty").Interface()).To(BeNil())
 		Expect(jsonObj.Get("is_vegetarian").MustBool()).To(BeFalse())
 	})
-
 	It("responses with [400 Bad Request] when getting an invalid JSON argument", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
@@ -138,7 +138,7 @@ var _ = Describe("Adding a recipe", func() {
 })
 
 var _ = Describe("Getting a recipe by ID", func() {
-	It("gets a recipe and return the corresponding JSON object", func() {
+	It("gets a recipe and returns the corresponding JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/recipe/32", nil)
@@ -154,7 +154,6 @@ var _ = Describe("Getting a recipe by ID", func() {
 		Expect(jsonObj.Get("difficulty").Interface()).To(BeNil())
 		Expect(jsonObj.Get("is_vegetarian").MustBool()).To(BeFalse())
 	})
-
 	It("responses with [404 Not Found] when getting an invalid parameter", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
@@ -163,7 +162,6 @@ var _ = Describe("Getting a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-
 	It("responses with [404 Not Found] when the recipe doesn't exist", func() {
 		server := newTestAPIServer(nil)
 		rr := httptest.NewRecorder()
@@ -172,11 +170,10 @@ var _ = Describe("Getting a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-
 })
 
 var _ = Describe("Updating a recipe by ID", func() {
-	It("updates a recipe and get the updated JSON object", func() {
+	It("updates a recipe and gets the updated JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(3, true), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/recipe/32", bytes.NewBuffer([]byte(`
@@ -194,7 +191,6 @@ var _ = Describe("Updating a recipe by ID", func() {
 		Expect(jsonObj.Get("prepare_time").MustInt()).To(Equal(5))
 		Expect(jsonObj.Get("difficulty").MustInt()).To(Equal(3))
 	})
-
 	It("responses with [404 Not Found] when getting an invalid parameter", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
@@ -208,7 +204,6 @@ var _ = Describe("Updating a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-
 	It("responses with [404 Not Found] when the recipe doesn't exist", func() {
 		server := newTestAPIServer(nil)
 		rr := httptest.NewRecorder()
@@ -222,7 +217,6 @@ var _ = Describe("Updating a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-
 	It("responses with [400 Bad Request] if the JSON argument is invalid", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
@@ -239,5 +233,39 @@ var _ = Describe("Updating a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusBadRequest))
 	})
+})
 
+var _ = Describe("Deleting a recipe by ID", func() {
+	It("deletes a recipe and gets the deleted JSON object", func() {
+		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/recipe/32", nil)
+
+		server.httpServer.router.ServeHTTP(rr, req)
+
+		jsonObj := newJSON(rr.Body.Bytes())
+		GinkgoT().Logf("[Delete A Recipe By ID] JSON Result: %s", jsonObj.pretty())
+		Expect(rr.Code).To(Equal(http.StatusOK))
+		Expect(jsonObj.Get("id").MustInt()).To(Equal(32))
+		Expect(jsonObj.Get("name").MustString()).To(Equal("name3"))
+		Expect(jsonObj.Get("prepare_time").MustInt()).To(Equal(5))
+		Expect(jsonObj.Get("difficulty").Interface()).To(BeNil())
+		Expect(jsonObj.Get("is_vegetarian").MustBool()).To(BeFalse())
+	})
+	It("responses with [404 Not Found] when getting an invalid parameter", func() {
+		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/recipes/ff", nil)
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusNotFound))
+	})
+	It("responses with [404 Not Found] when the recipe doesn't exist", func() {
+		server := newTestAPIServer(nil)
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/recipes/32", nil)
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusNotFound))
+	})
 })
