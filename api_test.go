@@ -14,12 +14,12 @@ type mockDatastore struct {
 	dataFunc func() interface{}
 }
 
-func (md *mockDatastore) listRecipes() []Recipe {
-	return md.dataFunc().([]Recipe)
+func (md *mockDatastore) listRecipes() []*Recipe {
+	return md.dataFunc().([]*Recipe)
 }
 
-func (md *mockDatastore) addRecipe(arg PostRecipeArg) Recipe {
-	return md.dataFunc().(Recipe)
+func (md *mockDatastore) addRecipe(arg PostRecipeArg) *Recipe {
+	return md.dataFunc().(*Recipe)
 }
 
 func (md *mockDatastore) getRecipeByID(id int) *Recipe {
@@ -42,7 +42,7 @@ func newTestAPIServer(data interface{}) *apiServer {
 
 var _ = Describe("Listing recipes", func() {
 	It("lists non-empty results", func() {
-		server := newTestAPIServer([]Recipe{
+		server := newTestAPIServer([]*Recipe{
 			{1, "name1", null.NewInt(0, false), null.NewInt(0, false), false},
 			{11, "name11", null.NewInt(1, true), null.NewInt(2, true), true},
 		})
@@ -75,7 +75,7 @@ var _ = Describe("Listing recipes", func() {
 	})
 
 	It("lists empty results", func() {
-		server := newTestAPIServer([]Recipe{})
+		server := newTestAPIServer([]*Recipe{})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", "/recipes", nil)
 		server.httpServer.router.ServeHTTP(rr, req)
@@ -92,7 +92,7 @@ var _ = Describe("Listing recipes", func() {
 
 var _ = Describe("Adding a recipe", func() {
 	It("adds a recipe and return the resulting JSON object", func() {
-		server := newTestAPIServer(Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
+		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/recipes", newJSON([]byte(`
 			{
