@@ -49,16 +49,20 @@ func (d *sqlxPostgreSQL) listRecipes() []*Recipe {
 func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg) *Recipe {
 	var res Recipe
 	tx := d.sqlxDB.MustBegin()
-	tx.NamedExec(`
+	if _, err := tx.NamedExec(`
 	INSERT INTO recipe(r_name, r_prep_time, r_difficulty, r_vegetarian)
 	VALUES (:r_name, :r_prep_time, :r_difficulty, :r_vegetarian)
-	`, arg)
-	tx.Get(&res, `
+	`, arg); err != nil {
+		panic(err)
+	}
+	if err := tx.Get(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
 	WHERE r_id = (
 		SELECT currval(pg_get_serial_sequence('recipe','r_id'))
 	)
-	`)
+	`); err != nil {
+		panic(err)
+	}
 	tx.Commit()
 	return &res
 }
