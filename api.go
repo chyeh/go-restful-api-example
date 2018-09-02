@@ -50,6 +50,7 @@ func (s *apiServer) getRecipes(c *gin.Context) {
 func (s *apiServer) postRecipes(c *gin.Context) {
 	arg := &PostRecipeArg{}
 	if err := c.BindJSON(arg); err == nil {
+		arg.validate()
 		res := s.datastore.addRecipe(arg)
 		c.JSON(200, res)
 	}
