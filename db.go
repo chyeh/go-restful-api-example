@@ -30,6 +30,12 @@ func newSqlxPostgreSQL(connectionString string) *sqlxPostgreSQL {
 	}
 }
 
+func (d *sqlxPostgreSQL) close() {
+	if err := d.sqlxDB.Close(); err != nil {
+		panic(err)
+	}
+}
+
 func (d *sqlxPostgreSQL) listRecipes() []*Recipe {
 	var res []*Recipe
 	if err := d.sqlxDB.Select(&res, `
