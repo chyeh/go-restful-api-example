@@ -18,6 +18,7 @@ type datastore interface {
 	listRecipes() []*Recipe
 	addRecipe(*PostRecipeArg) *Recipe
 	getRecipeByID(int) *Recipe
+	updateRecipe(*Recipe)
 }
 
 type sqlxPostgreSQL struct {
@@ -76,4 +77,17 @@ func (d *sqlxPostgreSQL) getRecipeByID(id int) *Recipe {
 		return nil
 	}
 	return &res
+}
+
+func (d *sqlxPostgreSQL) updateRecipe(arg *Recipe) {
+	if _, err := d.sqlxDB.NamedExec(`
+	UPDATE recipe
+	SET	r_name = :r_name,
+		r_prep_time = :r_prep_time,
+		r_difficulty = :r_difficulty,
+		r_vegetarian = :r_vegetarian
+	WHERE r_id = :r_id
+	`, arg); err != nil {
+		panic(err)
+	}
 }
