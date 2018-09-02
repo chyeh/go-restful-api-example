@@ -18,7 +18,7 @@ func (md *mockDatastore) listRecipes() []*Recipe {
 	return md.dataFunc().([]*Recipe)
 }
 
-func (md *mockDatastore) addRecipe(arg PostRecipeArg) *Recipe {
+func (md *mockDatastore) addRecipe(arg *PostRecipeArg) *Recipe {
 	return md.dataFunc().(*Recipe)
 }
 
@@ -83,6 +83,7 @@ var _ = Describe("Listing recipes", func() {
 		jsonObj := newJSON(rr.Body.Bytes())
 		GinkgoT().Logf("[Get Recipes] JSON Result: %s", jsonObj.pretty())
 		Expect(rr.Code).To(Equal(http.StatusOK))
+		Expect(jsonObj.MustArray()).NotTo(BeNil())
 		Expect(jsonObj.MustArray()).To(HaveLen(0))
 		Expect(rr.Body.String()).To(MatchJSON(`
 		[]

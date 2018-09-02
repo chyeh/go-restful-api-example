@@ -37,7 +37,7 @@ func (d *sqlxPostgreSQL) close() {
 }
 
 func (d *sqlxPostgreSQL) listRecipes() []*Recipe {
-	var res []*Recipe
+	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
 	`); err != nil {
