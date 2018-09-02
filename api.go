@@ -41,6 +41,7 @@ func (s *apiServer) routes() {
 	s.httpServer.router.POST("/recipes", s.postRecipes)
 	s.httpServer.router.GET("/recipe/:id", s.getRecipe)
 	s.httpServer.router.PUT("/recipe/:id", s.putRecipe)
+	s.httpServer.router.DELETE("/recipe/:id", s.deleteRecipe)
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
@@ -78,6 +79,17 @@ func (s *apiServer) putRecipe(c *gin.Context) {
 			s.datastore.updateRecipe(recipe)
 			c.JSON(200, recipe)
 		}
+	}
+	c.AbortWithStatus(404)
+}
+
+func (s *apiServer) deleteRecipe(c *gin.Context) {
+	recipeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(404)
+	} else if recipe := s.datastore.getRecipeByID(recipeID); recipe != nil {
+		s.datastore.deleteRecipeByID(recipeID)
+		c.JSON(200, recipe)
 	}
 	c.AbortWithStatus(404)
 }

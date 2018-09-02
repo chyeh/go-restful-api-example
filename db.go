@@ -19,6 +19,7 @@ type datastore interface {
 	addRecipe(*PostRecipeArg) *Recipe
 	getRecipeByID(int) *Recipe
 	updateRecipe(*Recipe)
+	deleteRecipeByID(id int)
 }
 
 type sqlxPostgreSQL struct {
@@ -90,4 +91,11 @@ func (d *sqlxPostgreSQL) updateRecipe(arg *Recipe) {
 	`, arg); err != nil {
 		panic(err)
 	}
+}
+
+func (d *sqlxPostgreSQL) deleteRecipeByID(id int) {
+	d.sqlxDB.MustExec(`
+	DELETE FROM recipe
+	WHERE r_id = $1
+	`, id)
 }
