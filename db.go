@@ -17,6 +17,7 @@ type Recipe struct {
 type datastore interface {
 	listRecipes() []Recipe
 	addRecipe(PostRecipeArg) Recipe
+	getRecipeByID(int) *Recipe
 }
 
 type sqlxPostgreSQL struct {
@@ -54,4 +55,15 @@ func (d *sqlxPostgreSQL) addRecipe(arg PostRecipeArg) Recipe {
 	`)
 	tx.Commit()
 	return res
+}
+
+func (d *sqlxPostgreSQL) getRecipeByID(id int) *Recipe {
+	var res Recipe
+	if err := d.sqlxDB.Get(&res, `
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	WHERE r_id = $1
+	`, id); err != nil {
+		return nil
+	}
+	return &res
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,6 +39,7 @@ func (s *apiServer) run() {
 func (s *apiServer) routes() {
 	s.httpServer.router.GET("/recipes", s.getRecipes)
 	s.httpServer.router.POST("/recipes", s.postRecipes)
+	s.httpServer.router.GET("/recipe/:id", s.getRecipe)
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
@@ -51,4 +53,14 @@ func (s *apiServer) postRecipes(c *gin.Context) {
 		res := s.datastore.addRecipe(arg)
 		c.JSON(200, res)
 	}
+}
+
+func (s *apiServer) getRecipe(c *gin.Context) {
+	recipeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(404)
+	} else if res := s.datastore.getRecipeByID(recipeID); res != nil {
+		c.JSON(200, res)
+	}
+	c.AbortWithStatus(404)
 }
