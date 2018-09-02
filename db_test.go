@@ -9,7 +9,7 @@ import (
 
 var _ = Describe("Testing database object", func() {
 	BeforeEach(func() {
-		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/?sslmode=disable")
+		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable")
 		defer testDB.close()
 
 		testDB.sqlxDB.MustExec(`
@@ -21,7 +21,7 @@ var _ = Describe("Testing database object", func() {
 	})
 
 	AfterEach(func() {
-		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/?sslmode=disable")
+		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable")
 		defer testDB.close()
 
 		testDB.sqlxDB.MustExec(`
@@ -30,7 +30,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("listing recipes", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -42,12 +42,12 @@ var _ = Describe("Testing database object", func() {
 				r_name VARCHAR(512) NOT NULL,
 				r_prep_time SMALLINT,
 				r_difficulty SMALLINT,
-				r_vegetarian BOOLEAN NOT NULL DEFAULT false
+				r_vegetarian BOOLEAN NOT NULL
 			)
 			`)
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -55,7 +55,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("lists empty table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
 			actual := testDB.listRecipes()
@@ -64,7 +64,7 @@ var _ = Describe("Testing database object", func() {
 		})
 
 		It("lists non-empty table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@10.20.30.50:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
 			testDB.addRecipe(&PostRecipeArg{
@@ -81,6 +81,59 @@ var _ = Describe("Testing database object", func() {
 			})
 
 			Expect(testDB.listRecipes()).To(HaveLen(3))
+		})
+	})
+
+	Context("adding a new recipe", func() {
+		BeforeEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS recipe
+			`)
+			testDB.sqlxDB.MustExec(`
+			CREATE TABLE recipe(
+				r_id SERIAL PRIMARY KEY,
+				r_name VARCHAR(512) NOT NULL,
+				r_prep_time SMALLINT,
+				r_difficulty SMALLINT,
+				r_vegetarian BOOLEAN NOT NULL
+			)
+			`)
+		})
+		AfterEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE recipe
+			`)
+		})
+		It("adds a record in the recipe table and return the corresponding record", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			Expect(testDB.listRecipes()).To(HaveLen(0))
+			testDB.addRecipe(&PostRecipeArg{
+				Name:         null.NewString("name1", true),
+				IsVegetarian: null.NewBool(false, true),
+			})
+			Expect(testDB.listRecipes()).To(HaveLen(1))
+
+			actual := testDB.addRecipe(&PostRecipeArg{
+				Name:         null.NewString("name2", true),
+				PrepareTime:  null.NewInt(2, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(false, true),
+			})
+			Expect(actual.ID).To(Equal(2))
+			Expect(actual.Name).To(Equal("name2"))
+			Expect(actual.PrepareTime.Int64).To(Equal(int64(2)))
+			Expect(actual.Difficulty.Int64).To(Equal(int64(4)))
+			Expect(actual.IsVegetarian).To(BeFalse())
+			Expect(testDB.listRecipes()).To(HaveLen(2))
+
 		})
 	})
 })
