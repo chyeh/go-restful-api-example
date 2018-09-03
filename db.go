@@ -15,7 +15,7 @@ type Recipe struct {
 }
 
 type datastore interface {
-	listRecipes() []*Recipe
+	listRecipes(*filter) []*Recipe
 	addRecipe(*PostRecipeArg) *Recipe
 	getRecipeByID(int) *Recipe
 	updateRecipe(*Recipe)
@@ -38,11 +38,11 @@ func (d *sqlxPostgreSQL) close() {
 	}
 }
 
-func (d *sqlxPostgreSQL) listRecipes() []*Recipe {
+func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
 	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
-	`); err != nil {
+	`+f.whereClause()); err != nil {
 		panic(err)
 	}
 	return res

@@ -45,7 +45,7 @@ func (s *apiServer) routes() {
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
-	res := s.datastore.listRecipes()
+	res := s.datastore.listRecipes(newFilter(c))
 	c.JSON(200, res)
 }
 
