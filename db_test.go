@@ -7,6 +7,16 @@ import (
 	null "gopkg.in/guregu/null.v3"
 )
 
+const testRecipeTableSchema = `
+CREATE TABLE recipe(
+	r_id SERIAL PRIMARY KEY,
+	r_name VARCHAR(512) NOT NULL,
+	r_prep_time SMALLINT,
+	r_difficulty SMALLINT,
+	r_vegetarian BOOLEAN NOT NULL
+)
+`
+
 var _ = Describe("Testing database object", func() {
 	BeforeEach(func() {
 		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable")
@@ -35,15 +45,7 @@ var _ = Describe("Testing database object", func() {
 			testDB.sqlxDB.MustExec(`
 			DROP TABLE IF EXISTS recipe
 			`)
-			testDB.sqlxDB.MustExec(`
-			CREATE TABLE recipe(
-				r_id SERIAL PRIMARY KEY,
-				r_name VARCHAR(512) NOT NULL,
-				r_prep_time SMALLINT,
-				r_difficulty SMALLINT,
-				r_vegetarian BOOLEAN NOT NULL
-			)
-			`)
+			testDB.sqlxDB.MustExec(testRecipeTableSchema)
 		})
 		AfterEach(func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
@@ -174,15 +176,7 @@ var _ = Describe("Testing database object", func() {
 			testDB.sqlxDB.MustExec(`
 				DROP TABLE IF EXISTS recipe
 				`)
-			testDB.sqlxDB.MustExec(`
-				CREATE TABLE recipe(
-					r_id SERIAL PRIMARY KEY,
-					r_name VARCHAR(512) NOT NULL,
-					r_prep_time SMALLINT,
-					r_difficulty SMALLINT,
-					r_vegetarian BOOLEAN NOT NULL
-				)
-				`)
+			testDB.sqlxDB.MustExec(testRecipeTableSchema)
 		})
 		AfterEach(func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
@@ -225,15 +219,7 @@ var _ = Describe("Testing database object", func() {
 			testDB.sqlxDB.MustExec(`
 				DROP TABLE IF EXISTS recipe
 				`)
-			testDB.sqlxDB.MustExec(`
-				CREATE TABLE recipe(
-					r_id SERIAL PRIMARY KEY,
-					r_name VARCHAR(512) NOT NULL,
-					r_prep_time SMALLINT,
-					r_difficulty SMALLINT,
-					r_vegetarian BOOLEAN NOT NULL
-				)
-				`)
+			testDB.sqlxDB.MustExec(testRecipeTableSchema)
 		})
 		AfterEach(func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
@@ -276,15 +262,7 @@ var _ = Describe("Testing database object", func() {
 			testDB.sqlxDB.MustExec(`
 				DROP TABLE IF EXISTS recipe
 				`)
-			testDB.sqlxDB.MustExec(`
-				CREATE TABLE recipe(
-					r_id SERIAL PRIMARY KEY,
-					r_name VARCHAR(512) NOT NULL,
-					r_prep_time SMALLINT,
-					r_difficulty SMALLINT,
-					r_vegetarian BOOLEAN NOT NULL
-				)
-				`)
+			testDB.sqlxDB.MustExec(testRecipeTableSchema)
 		})
 		AfterEach(func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
