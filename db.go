@@ -39,6 +39,9 @@ func (d *sqlxPostgreSQL) close() {
 }
 
 func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
+	if f == nil {
+		panic("nil filter not allowed")
+	}
 	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
