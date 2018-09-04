@@ -47,7 +47,7 @@ func (s *apiServer) routes() {
 
 func (s *apiServer) getRecipes(c *gin.Context) {
 	res := s.datastore.listRecipes(newFilter(c))
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func (s *apiServer) postRecipe(c *gin.Context) {
@@ -60,27 +60,27 @@ func (s *apiServer) postRecipe(c *gin.Context) {
 	arg.validate()
 	token := c.GetHeader("Authorization")
 	if res := s.datastore.addRecipe(arg, token); res != nil {
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 		return
 	}
-	c.AbortWithStatus(404)
+	c.AbortWithStatus(http.StatusNotFound)
 }
 
 func (s *apiServer) getRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 	} else if res := s.datastore.getRecipeByID(recipeID); res != nil {
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 		return
 	}
-	c.AbortWithStatus(404)
+	c.AbortWithStatus(http.StatusNotFound)
 }
 
 func (s *apiServer) putRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
@@ -92,25 +92,25 @@ func (s *apiServer) putRecipe(c *gin.Context) {
 
 	token := c.GetHeader("Authorization")
 	if recipe := s.datastore.updateAndGetRecipeByCredential(arg, recipeID, token); recipe != nil {
-		c.JSON(200, recipe)
+		c.JSON(http.StatusOK, recipe)
 		return
 	}
 
-	c.AbortWithStatus(404)
+	c.AbortWithStatus(http.StatusNotFound)
 }
 
 func (s *apiServer) deleteRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.AbortWithStatus(404)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
 	token := c.GetHeader("Authorization")
 	if recipe := s.datastore.deleteAndGetRecipeByCredential(recipeID, token); recipe != nil {
-		c.JSON(200, recipe)
+		c.JSON(http.StatusOK, recipe)
 		return
 	}
 
-	c.AbortWithStatus(404)
+	c.AbortWithStatus(http.StatusNotFound)
 }
