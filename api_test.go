@@ -18,16 +18,32 @@ func (md *mockDatastore) listRecipes(f *filter) []*Recipe {
 	return md.dataFunc().([]*Recipe)
 }
 
-func (md *mockDatastore) addRecipe(arg *PostRecipeArg) *Recipe {
-	return md.dataFunc().(*Recipe)
+func (md *mockDatastore) addRecipe(arg *PostRecipeArg, token string) *Recipe {
+	if d := md.dataFunc(); d != nil {
+		return md.dataFunc().(*Recipe)
+	}
+	return nil
 }
 
 func (md *mockDatastore) getRecipeByID(id int) *Recipe {
-	return md.dataFunc().(*Recipe)
+	if d := md.dataFunc(); d != nil {
+		return md.dataFunc().(*Recipe)
+	}
+	return nil
 }
 
 func (md *mockDatastore) updateAndGetRecipeByCredential(arg *PutRecipeArg, id int, token string) *Recipe {
-	return md.dataFunc().(*Recipe)
+	if d := md.dataFunc(); d != nil {
+		return md.dataFunc().(*Recipe)
+	}
+	return nil
+}
+
+func (md *mockDatastore) deleteAndGetRecipeByCredential(id int, token string) *Recipe {
+	if d := md.dataFunc(); d != nil {
+		return md.dataFunc().(*Recipe)
+	}
+	return nil
 }
 
 func newTestAPIServer(data interface{}) *apiServer {
@@ -42,10 +58,6 @@ func newTestAPIServer(data interface{}) *apiServer {
 	}
 	s.routes()
 	return s
-}
-
-func (md *mockDatastore) deleteRecipeByID(id int, token string) *Recipe {
-	return md.dataFunc().(*Recipe)
 }
 
 var _ = Describe("Listing recipes", func() {
@@ -111,6 +123,7 @@ var _ = Describe("Adding a recipe", func() {
 		}
 		`)).buffer())
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 
@@ -122,6 +135,23 @@ var _ = Describe("Adding a recipe", func() {
 		Expect(jsonObj.Get("prepare_time").MustInt()).To(Equal(5))
 		Expect(jsonObj.Get("difficulty").Interface()).To(BeNil())
 		Expect(jsonObj.Get("is_vegetarian").MustBool()).To(BeFalse())
+	})
+	It("responses with [404 Not Found] when the user's credential is not valid", func() {
+		server := newTestAPIServer(nil)
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("POST", "/recipes", bytes.NewBuffer([]byte(`
+		{
+			"name":"name3",
+			"prepare_time":5,
+			"difficulty":null,
+			"is_vegetarian":false
+		}
+		`)))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "faketoken")
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
 	It("responses with [400 Bad Request] when getting an invalid JSON argument", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
@@ -135,6 +165,7 @@ var _ = Describe("Adding a recipe", func() {
 		}
 		`)))
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusBadRequest))
@@ -145,7 +176,7 @@ var _ = Describe("Getting a recipe by ID", func() {
 	It("gets a recipe and returns the corresponding JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/recipe/32", nil)
+		req, _ := http.NewRequest("GET", "/recipes/32", nil)
 
 		server.httpServer.router.ServeHTTP(rr, req)
 
@@ -180,7 +211,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 	It("updates a recipe and gets the updated JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(3, true), false})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipe/32", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("PUT", "/recipes/32", bytes.NewBuffer([]byte(`
 		{
 			"prepare_time":5,
 			"difficulty":3
@@ -228,7 +259,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 	It("responses with [400 Bad Request] if the JSON argument is invalid", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipe/32", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("PUT", "/recipes/32", bytes.NewBuffer([]byte(`
 		{
 			"name":"name3",
 			"prepare_time":5,
@@ -248,7 +279,7 @@ var _ = Describe("Deleting a recipe by ID", func() {
 	It("deletes a recipe and gets the deleted JSON object", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("DELETE", "/recipe/32", nil)
+		req, _ := http.NewRequest("DELETE", "/recipes/32", nil)
 		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)

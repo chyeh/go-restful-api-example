@@ -428,7 +428,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			deletedRecipe := testDB.deleteRecipeByID(1, "faketoken")
+			deletedRecipe := testDB.deleteAndGetRecipeByCredential(1, "faketoken")
 			Expect(testDB.getRecipeByID(1)).To(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
 			Expect(deletedRecipe.Name).To(Equal("name1"))
@@ -441,7 +441,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			deletedRecipe := testDB.deleteRecipeByID(3, "faketoken")
+			deletedRecipe := testDB.deleteAndGetRecipeByCredential(3, "faketoken")
 			Expect(deletedRecipe).To(BeNil())
 			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
@@ -451,7 +451,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			deletedRecipe := testDB.deleteRecipeByID(1, "failed_token")
+			deletedRecipe := testDB.deleteAndGetRecipeByCredential(1, "failed_token")
 			Expect(deletedRecipe).To(BeNil())
 			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())

@@ -39,10 +39,10 @@ func (s *apiServer) run() {
 
 func (s *apiServer) routes() {
 	s.httpServer.router.GET("/recipes", s.getRecipes)
-	s.httpServer.router.POST("/recipes", s.postRecipes)
-	s.httpServer.router.GET("/recipe/:id", s.getRecipe)
-	s.httpServer.router.PUT("/recipe/:id", s.putRecipe)
-	s.httpServer.router.DELETE("/recipe/:id", s.deleteRecipe)
+	s.httpServer.router.POST("/recipes", s.postRecipe)
+	s.httpServer.router.GET("/recipes/:id", s.getRecipe)
+	s.httpServer.router.PUT("/recipes/:id", s.putRecipe)
+	s.httpServer.router.DELETE("/recipes/:id", s.deleteRecipe)
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
@@ -50,13 +50,20 @@ func (s *apiServer) getRecipes(c *gin.Context) {
 	c.JSON(200, res)
 }
 
-func (s *apiServer) postRecipes(c *gin.Context) {
+func (s *apiServer) postRecipe(c *gin.Context) {
 	arg := &PostRecipeArg{}
-	if err := c.BindJSON(arg); err == nil {
-		arg.validate()
-		res := s.datastore.addRecipe(arg)
-		c.JSON(200, res)
+	if err := c.BindJSON(arg); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
 	}
+
+	arg.validate()
+	token := c.GetHeader("Authorization")
+	if res := s.datastore.addRecipe(arg, token); res != nil {
+		c.JSON(200, res)
+		return
+	}
+	c.AbortWithStatus(404)
 }
 
 func (s *apiServer) getRecipe(c *gin.Context) {
@@ -65,6 +72,7 @@ func (s *apiServer) getRecipe(c *gin.Context) {
 		c.AbortWithStatus(404)
 	} else if res := s.datastore.getRecipeByID(recipeID); res != nil {
 		c.JSON(200, res)
+		return
 	}
 	c.AbortWithStatus(404)
 }
@@ -99,7 +107,7 @@ func (s *apiServer) deleteRecipe(c *gin.Context) {
 	}
 
 	token := c.GetHeader("Authorization")
-	if recipe := s.datastore.deleteRecipeByID(recipeID, token); recipe != nil {
+	if recipe := s.datastore.deleteAndGetRecipeByCredential(recipeID, token); recipe != nil {
 		c.JSON(200, recipe)
 		return
 	}

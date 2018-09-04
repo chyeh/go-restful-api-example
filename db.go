@@ -18,8 +18,8 @@ type datastore interface {
 	listRecipes(*filter) []*Recipe
 	addRecipe(*PostRecipeArg, string) *Recipe
 	getRecipeByID(int) *Recipe
-	deleteRecipeByID(int, string) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
+	deleteAndGetRecipeByCredential(int, string) *Recipe
 }
 
 type sqlxPostgreSQL struct {
@@ -139,7 +139,7 @@ func (d *sqlxPostgreSQL) updateAndGetRecipeByCredential(arg *PutRecipeArg, id in
 	return &res
 }
 
-func (d *sqlxPostgreSQL) deleteRecipeByID(id int, token string) *Recipe {
+func (d *sqlxPostgreSQL) deleteAndGetRecipeByCredential(id int, token string) *Recipe {
 	var res Recipe
 	tx := d.sqlxDB.MustBegin()
 	if err := d.sqlxDB.Get(&res, `
