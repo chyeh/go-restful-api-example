@@ -95,9 +95,14 @@ func (s *apiServer) deleteRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithStatus(404)
-	} else if recipe := s.datastore.getRecipeByID(recipeID); recipe != nil {
-		s.datastore.deleteRecipeByID(recipeID)
-		c.JSON(200, recipe)
+		return
 	}
+
+	token := c.GetHeader("Authorization")
+	if recipe := s.datastore.deleteRecipeByID(recipeID, token); recipe != nil {
+		c.JSON(200, recipe)
+		return
+	}
+
 	c.AbortWithStatus(404)
 }

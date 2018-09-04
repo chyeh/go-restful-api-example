@@ -44,7 +44,9 @@ func newTestAPIServer(data interface{}) *apiServer {
 	return s
 }
 
-func (md *mockDatastore) deleteRecipeByID(id int) {}
+func (md *mockDatastore) deleteRecipeByID(id int, token string) *Recipe {
+	return md.dataFunc().(*Recipe)
+}
 
 var _ = Describe("Listing recipes", func() {
 	It("lists non-empty results", func() {
@@ -204,6 +206,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 			"difficulty":3
 		}
 		`)))
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
@@ -217,6 +220,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 			"difficulty":3
 		}
 		`)))
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
@@ -245,6 +249,7 @@ var _ = Describe("Deleting a recipe by ID", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/recipe/32", nil)
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 
@@ -261,14 +266,16 @@ var _ = Describe("Deleting a recipe by ID", func() {
 		server := newTestAPIServer(&Recipe{32, "name3", null.NewInt(5, true), null.NewInt(0, false), false})
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/recipes/ff", nil)
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-	It("responses with [404 Not Found] when the recipe doesn't exist", func() {
+	It("responses with [404 Not Found] when the recipe is not authorized or not found", func() {
 		server := newTestAPIServer(nil)
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("DELETE", "/recipes/32", nil)
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
