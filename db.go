@@ -16,7 +16,7 @@ type Recipe struct {
 
 type datastore interface {
 	listRecipes(*filter) []*Recipe
-	addRecipe(*PostRecipeArg) *Recipe
+	addRecipe(*PostRecipeArg, string) *Recipe
 	getRecipeByID(int) *Recipe
 	deleteRecipeByID(int, string) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
@@ -51,9 +51,19 @@ func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
 	return res
 }
 
-func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg) *Recipe {
+func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg, token string) *Recipe {
 	var res Recipe
+	var userID int
 	tx := d.sqlxDB.MustBegin()
+	if err := d.sqlxDB.Get(&userID, `
+	SELECT hu_id FROM hellofresh_user
+	WHERE hu_access_token = $1
+	`, token); err != nil {
+		if err := tx.Rollback(); err != nil {
+			panic(err)
+		}
+		return nil
+	}
 	if _, err := tx.NamedExec(`
 	INSERT INTO recipe(r_name, r_prep_time, r_difficulty, r_vegetarian)
 	VALUES (:r_name, :r_prep_time, :r_difficulty, :r_vegetarian)
@@ -68,6 +78,10 @@ func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg) *Recipe {
 	`); err != nil {
 		panic(err)
 	}
+	tx.MustExec(`
+	INSERT INTO hellofresh_user_recipe(hur_hu_id, hur_r_id)
+	VALUES ($1, $2)
+	`, userID, res.ID)
 	tx.Commit()
 	return &res
 }
