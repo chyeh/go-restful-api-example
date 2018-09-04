@@ -7,15 +7,39 @@ import (
 	null "gopkg.in/guregu/null.v3"
 )
 
-const testRecipeTableSchema = `
-CREATE TABLE recipe(
-	r_id SERIAL PRIMARY KEY,
-	r_name VARCHAR(512) NOT NULL,
-	r_prep_time SMALLINT,
-	r_difficulty SMALLINT,
-	r_vegetarian BOOLEAN NOT NULL
+const (
+	testRecipeTableSchema = `
+	CREATE TABLE recipe(
+		r_id SERIAL PRIMARY KEY,
+		r_name VARCHAR(512) NOT NULL,
+		r_prep_time SMALLINT,
+		r_difficulty SMALLINT,
+		r_vegetarian BOOLEAN NOT NULL
+	)
+	`
+	testHellofreshUserTableSchema = `
+	CREATE TABLE hellofresh_user(
+		hu_id SERIAL PRIMARY KEY,
+		hu_account VARCHAR(32) NOT NULL UNIQUE,
+		hu_access_token VARCHAR(32) NOT NULL UNIQUE
+	)
+	`
+	testHellofreshUserRecipeTableSchema = `
+	CREATE TABLE hellofresh_user_recipe(
+		hur_hu_id INTEGER,
+		hur_r_id INTEGER,
+		CONSTRAINT pk_hellofresh_user_recipe PRIMARY KEY(hur_hu_id, hur_r_id),
+		CONSTRAINT fk_hellofresh_user_recipe__hellofresh_user FOREIGN KEY
+			(hur_hu_id) REFERENCES hellofresh_user(hu_id)
+			ON DELETE CASCADE
+			ON UPDATE RESTRICT,
+		CONSTRAINT fk_hellofresh_user_recipe__recipe FOREIGN KEY
+			(hur_r_id) REFERENCES recipe(r_id)
+			ON DELETE CASCADE
+			ON UPDATE RESTRICT
+	)
+	`
 )
-`
 
 var _ = Describe("Testing database object", func() {
 	BeforeEach(func() {
@@ -220,38 +244,87 @@ var _ = Describe("Testing database object", func() {
 				DROP TABLE IF EXISTS recipe
 				`)
 			testDB.sqlxDB.MustExec(testRecipeTableSchema)
+			testDB.sqlxDB.MustExec(`
+				DROP TABLE IF EXISTS hellofresh_user
+				`)
+			testDB.sqlxDB.MustExec(testHellofreshUserTableSchema)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(testHellofreshUserRecipeTableSchema)
+
+			testDB.addRecipe(&PostRecipeArg{
+				Name:         null.NewString("name1", true),
+				PrepareTime:  null.NewInt(2, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(false, true),
+			})
+			testDB.sqlxDB.MustExec(`
+			INSERT INTO hellofresh_user(hu_account, hu_access_token)
+			VALUES
+			('foo', 'faketoken')
+			`)
+			testDB.sqlxDB.MustExec(`
+			INSERT INTO hellofresh_user_recipe(hur_hu_id, hur_r_id)
+			VALUES
+			(1,1)
+			`)
 		})
 		AfterEach(func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
-				DROP TABLE recipe
-				`)
+			DROP TABLE hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE hellofresh_user
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE recipe
+			`)
 		})
 		It("updates a existent record in the recipe table", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			testDB.addRecipe(&PostRecipeArg{
-				Name:         null.NewString("name2", true),
-				PrepareTime:  null.NewInt(2, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
-			})
-			testDB.updateRecipe(&Recipe{
-				ID:           1,
-				Name:         "name2_updated",
+			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
+				Name:         null.NewString("name1_updated", true),
 				PrepareTime:  null.NewInt(3, true),
 				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: false,
-			})
+				IsVegetarian: null.NewBool(false, true),
+			}, 1, "faketoken")
 
-			actual := testDB.getRecipeByID(1)
-			Expect(actual.Name).To(Equal("name2_updated"))
+			Expect(actual.Name).To(Equal("name1_updated"))
 			Expect(actual.PrepareTime.Int64).To(Equal(int64(3)))
 			Expect(actual.Difficulty.Int64).To(Equal(int64(4)))
 			Expect(actual.IsVegetarian).To(BeFalse())
+		})
+		It("does nothing if the recipe doesn't exist", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
+				Name:         null.NewString("name1_updated", true),
+				PrepareTime:  null.NewInt(3, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(false, true),
+			}, 2, "faketoken")
+
+			Expect(actual).To(BeNil())
+		})
+		It("does nothing if the access to the recipe is not authorized", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
+				Name:         null.NewString("name1_updated", true),
+				PrepareTime:  null.NewInt(3, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(false, true),
+			}, 1, "failed_faketoken")
+
+			Expect(actual).To(BeNil())
 		})
 	})
 	Context("deleting a recipe", func() {

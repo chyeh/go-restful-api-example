@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -72,14 +73,21 @@ func (s *apiServer) putRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithStatus(404)
-	} else if recipe := s.datastore.getRecipeByID(recipeID); recipe != nil {
-		arg := &PutRecipeArg{}
-		if err := c.BindJSON(arg); err == nil {
-			arg.overwriteRecipe(recipe)
-			s.datastore.updateRecipe(recipe)
-			c.JSON(200, recipe)
-		}
+		return
 	}
+
+	arg := &PutRecipeArg{}
+	if err := c.BindJSON(arg); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	token := c.GetHeader("Authorization")
+	if recipe := s.datastore.updateAndGetRecipeByCredential(arg, recipeID, token); recipe != nil {
+		c.JSON(200, recipe)
+		return
+	}
+
 	c.AbortWithStatus(404)
 }
 

@@ -18,8 +18,8 @@ type datastore interface {
 	listRecipes(*filter) []*Recipe
 	addRecipe(*PostRecipeArg) *Recipe
 	getRecipeByID(int) *Recipe
-	updateRecipe(*Recipe)
 	deleteRecipeByID(id int)
+	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
 }
 
 type sqlxPostgreSQL struct {
@@ -83,17 +83,46 @@ func (d *sqlxPostgreSQL) getRecipeByID(id int) *Recipe {
 	return &res
 }
 
-func (d *sqlxPostgreSQL) updateRecipe(arg *Recipe) {
-	if _, err := d.sqlxDB.NamedExec(`
-	UPDATE recipe
-	SET	r_name = :r_name,
-		r_prep_time = :r_prep_time,
-		r_difficulty = :r_difficulty,
-		r_vegetarian = :r_vegetarian
-	WHERE r_id = :r_id
-	`, arg); err != nil {
-		panic(err)
+func (d *sqlxPostgreSQL) updateAndGetRecipeByCredential(arg *PutRecipeArg, id int, token string) *Recipe {
+	var res Recipe
+	tx := d.sqlxDB.MustBegin()
+	if err := d.sqlxDB.Get(&res, `
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	WHERE r_id = $1
+	`, id); err != nil {
+		if err := tx.Rollback(); err != nil {
+			panic(err)
+		}
+		return nil
 	}
+	arg.overwriteRecipe(&res)
+	slqResult := tx.MustExec(`
+	UPDATE recipe
+	SET	r_name = $1,
+		r_prep_time = $2,
+		r_difficulty = $3,
+		r_vegetarian = $4
+	WHERE r_id = (
+		SELECT recipe.r_id
+		FROM recipe
+		INNER JOIN hellofresh_user_recipe
+		ON recipe.r_id = hellofresh_user_recipe.hur_r_id
+		WHERE recipe.r_id = $5 AND hellofresh_user_recipe.hur_hu_id= (
+			SELECT hu_id FROM hellofresh_user
+			WHERE hu_access_token = $6
+		)
+	)
+	`, res.Name, res.PrepareTime, res.Difficulty, res.IsVegetarian, id, token)
+	if cnt, err := slqResult.RowsAffected(); err != nil {
+		panic(err)
+	} else if cnt == 0 {
+		if err := tx.Rollback(); err != nil {
+			panic(err)
+		}
+		return nil
+	}
+	tx.Commit()
+	return &res
 }
 
 func (d *sqlxPostgreSQL) deleteRecipeByID(id int) {

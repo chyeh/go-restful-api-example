@@ -26,7 +26,9 @@ func (md *mockDatastore) getRecipeByID(id int) *Recipe {
 	return md.dataFunc().(*Recipe)
 }
 
-func (md *mockDatastore) updateRecipe(r *Recipe) {}
+func (md *mockDatastore) updateAndGetRecipeByCredential(arg *PutRecipeArg, id int, token string) *Recipe {
+	return md.dataFunc().(*Recipe)
+}
 
 func newTestAPIServer(data interface{}) *apiServer {
 	md := &mockDatastore{
@@ -182,6 +184,8 @@ var _ = Describe("Updating a recipe by ID", func() {
 			"difficulty":3
 		}
 		`)))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 
@@ -204,7 +208,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
-	It("responses with [404 Not Found] when the recipe doesn't exist", func() {
+	It("responses with [404 Not Found] when the recipe is not authorized or not found", func() {
 		server := newTestAPIServer(nil)
 		rr := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/recipes/32", bytes.NewBuffer([]byte(`
@@ -229,6 +233,7 @@ var _ = Describe("Updating a recipe by ID", func() {
 		}
 		`)))
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "faketoken")
 
 		server.httpServer.router.ServeHTTP(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusBadRequest))

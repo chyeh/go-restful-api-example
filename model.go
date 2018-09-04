@@ -21,10 +21,10 @@ func (a *PostRecipeArg) validate() {
 }
 
 type PutRecipeArg struct {
-	Name         null.String `json:"name" db:"r_name"`
-	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time"`
-	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty"`
-	IsVegetarian null.Bool   `json:"is_vegetarian" db:"r_vegetarian"`
+	Name         null.String `json:"name"`
+	PrepareTime  null.Int    `json:"prepare_time"`
+	Difficulty   null.Int    `json:"difficulty"`
+	IsVegetarian null.Bool   `json:"is_vegetarian"`
 }
 
 func (a *PutRecipeArg) overwriteRecipe(r *Recipe) {
