@@ -241,12 +241,12 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
-				DROP TABLE IF EXISTS recipe
-				`)
+			DROP TABLE IF EXISTS recipe
+			`)
 			testDB.sqlxDB.MustExec(testRecipeTableSchema)
 			testDB.sqlxDB.MustExec(`
-				DROP TABLE IF EXISTS hellofresh_user
-				`)
+			DROP TABLE IF EXISTS hellofresh_user
+			`)
 			testDB.sqlxDB.MustExec(testHellofreshUserTableSchema)
 			testDB.sqlxDB.MustExec(`
 			DROP TABLE IF EXISTS hellofresh_user_recipe
@@ -333,22 +333,17 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
-				DROP TABLE IF EXISTS recipe
-				`)
+			DROP TABLE IF EXISTS recipe
+			`)
 			testDB.sqlxDB.MustExec(testRecipeTableSchema)
-		})
-		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
-			defer testDB.close()
-
 			testDB.sqlxDB.MustExec(`
-				DROP TABLE recipe
-				`)
-		})
-		It("deletes a existent record in the recipe table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
-			defer testDB.close()
-
+			DROP TABLE IF EXISTS hellofresh_user
+			`)
+			testDB.sqlxDB.MustExec(testHellofreshUserTableSchema)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(testHellofreshUserRecipeTableSchema)
 			testDB.addRecipe(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				PrepareTime:  null.NewInt(1, true),
@@ -361,14 +356,63 @@ var _ = Describe("Testing database object", func() {
 				Difficulty:   null.NewInt(4, true),
 				IsVegetarian: null.NewBool(true, true),
 			})
-			testDB.deleteRecipeByID(1)
-			testDB.getRecipeByID(1)
+			testDB.sqlxDB.MustExec(`
+			INSERT INTO hellofresh_user(hu_account, hu_access_token)
+			VALUES
+			('foo', 'faketoken')
+			`)
+			testDB.sqlxDB.MustExec(`
+			INSERT INTO hellofresh_user_recipe(hur_hu_id, hur_r_id)
+			VALUES
+			(1,1)
+			`)
+		})
+		AfterEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE hellofresh_user
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE recipe
+			`)
+		})
+		It("deletes a existent record in the recipe table", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			deletedRecipe := testDB.deleteRecipeByID(1, "faketoken")
 			Expect(testDB.getRecipeByID(1)).To(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
+			Expect(deletedRecipe.Name).To(Equal("name1"))
+			Expect(deletedRecipe.PrepareTime.Int64).To(Equal(int64(1)))
+			Expect(deletedRecipe.Difficulty.Int64).To(Equal(int64(2)))
+			Expect(deletedRecipe.IsVegetarian).To(BeFalse())
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
-			testDB.deleteRecipeByID(2)
-			Expect(testDB.getRecipeByID(2)).To(BeNil())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(0))
+		})
+		It("does nothing if the recipe doesn't exist", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			deletedRecipe := testDB.deleteRecipeByID(3, "faketoken")
+			Expect(deletedRecipe).To(BeNil())
+			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
+			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
+			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
+		})
+		It("does nothing if the access to the recipe is not authorized", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			deletedRecipe := testDB.deleteRecipeByID(1, "failed_token")
+			Expect(deletedRecipe).To(BeNil())
+			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
+			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
+			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
 		})
 	})
 })
