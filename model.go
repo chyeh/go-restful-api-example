@@ -70,4 +70,5 @@ func (a *PostRateRecipeArg) updateRecipe(r *Recipe) {
 		return
 	}
 	r.Rating.Float64 = ((r.Rating.Float64 * float64(r.RatedNum.Int64)) + float64(a.Rating.Int64)) / float64(r.RatedNum.Int64+1)
+	r.RatedNum.Int64++
 }

@@ -460,4 +460,83 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
 		})
 	})
+	Context("rating a recipe", func() {
+		BeforeEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS recipe
+			`)
+			testDB.sqlxDB.MustExec(testRecipeTableSchema)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS hellofresh_user
+			`)
+			testDB.sqlxDB.MustExec(testHellofreshUserTableSchema)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE IF EXISTS hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(testHellofreshUserRecipeTableSchema)
+
+			testDB.sqlxDB.MustExec(`
+			INSERT INTO hellofresh_user(hu_account, hu_access_token)
+			VALUES
+			('foo', 'faketoken')
+			`)
+			testDB.addRecipeByCredential(&PostRecipeArg{
+				Name:         null.NewString("name1", true),
+				PrepareTime:  null.NewInt(2, true),
+				Difficulty:   null.NewInt(4, true),
+				IsVegetarian: null.NewBool(false, true),
+			}, "faketoken")
+		})
+		AfterEach(func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE hellofresh_user_recipe
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE hellofresh_user
+			`)
+			testDB.sqlxDB.MustExec(`
+			DROP TABLE recipe
+			`)
+		})
+		It("rates a existent recipe", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
+				Rating: null.NewInt(3, true),
+			}, 1)
+			Expect(actual.Name).To(Equal("name1"))
+			Expect(actual.RatedNum.Int64).To(Equal(int64(1)))
+			Expect(actual.Rating.Float64).To(Equal(float64(3)))
+
+			actual = testDB.rateAndGetRecipe(&PostRateRecipeArg{
+				Rating: null.NewInt(4, true),
+			}, 1)
+			Expect(actual.Name).To(Equal("name1"))
+			Expect(actual.RatedNum.Int64).To(Equal(int64(2)))
+			Expect(actual.Rating.Float64).To(Equal(float64(3.5)))
+
+			actual = testDB.rateAndGetRecipe(&PostRateRecipeArg{
+				Rating: null.NewInt(5, true),
+			}, 1)
+			Expect(actual.Name).To(Equal("name1"))
+			Expect(actual.RatedNum.Int64).To(Equal(int64(3)))
+			Expect(actual.Rating.Float64).To(Equal(float64(4)))
+		})
+		It("does nothing if the recipe doesn't exist", func() {
+			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			defer testDB.close()
+
+			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
+				Rating: null.NewInt(3, true),
+			}, 2)
+			Expect(actual).To(BeNil())
+		})
+	})
 })
