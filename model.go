@@ -1,11 +1,42 @@
 package main
 
 import (
+	"reflect"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	validator "gopkg.in/go-playground/validator.v9"
 	null "gopkg.in/guregu/null.v3"
 )
+
+var validate = func() *validator.Validate {
+	v := validator.New()
+	v.RegisterCustomTypeFunc(
+		func(field reflect.Value) interface{} {
+			return field.Interface().(null.String).String
+		},
+		null.String{},
+	)
+	v.RegisterCustomTypeFunc(
+		func(field reflect.Value) interface{} {
+			return field.Interface().(null.Int).Ptr()
+		},
+		null.Int{},
+	)
+	v.RegisterCustomTypeFunc(
+		func(field reflect.Value) interface{} {
+			return field.Interface().(null.Bool).Ptr()
+		},
+		null.Bool{},
+	)
+	v.RegisterCustomTypeFunc(
+		func(field reflect.Value) interface{} {
+			return field.Interface().(null.Float).Ptr()
+		},
+		null.Float{},
+	)
+	return v
+}()
 
 type Recipe struct {
 	ID           int        `json:"id" db:"r_id"`
@@ -18,19 +49,10 @@ type Recipe struct {
 }
 
 type PostRecipeArg struct {
-	Name         null.String `json:"name" db:"r_name"`
-	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time"`
-	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty"`
-	IsVegetarian null.Bool   `json:"is_vegetarian" db:"r_vegetarian"`
-}
-
-func (a *PostRecipeArg) validate() {
-	if !a.Name.Valid {
-		panic("field 'Name' not valid")
-	}
-	if !a.IsVegetarian.Valid {
-		panic("field 'IsVegetarian' not valid")
-	}
+	Name         null.String `json:"name" db:"r_name" validate:"required"`
+	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time" validate:"gt=0"`
+	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty" validate:"min=1,max=3"`
+	IsVegetarian null.Bool   `json:"is_vegetarian" db:"r_vegetarian" validate:"required"`
 }
 
 type PutRecipeArg struct {

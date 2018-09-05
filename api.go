@@ -58,7 +58,10 @@ func (s *apiServer) postRecipe(c *gin.Context) {
 		return
 	}
 
-	arg.validate()
+	if err := validate.Struct(arg); err != nil {
+		panic(err)
+	}
+
 	token := c.GetHeader("Authorization")
 	if res := s.datastore.addRecipeByCredential(arg, token); res != nil {
 		c.JSON(http.StatusOK, res)
