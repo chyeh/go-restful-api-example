@@ -50,8 +50,8 @@ type Recipe struct {
 
 type PostRecipeArg struct {
 	Name         null.String `json:"name" db:"r_name" validate:"required"`
-	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time" validate:"gt=0"`
-	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty" validate:"min=1,max=3"`
+	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time" validate:"omitempty,gt=0"`
+	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty" validate:"omitempty,min=1,max=3"`
 	IsVegetarian null.Bool   `json:"is_vegetarian" db:"r_vegetarian" validate:"required"`
 }
 
