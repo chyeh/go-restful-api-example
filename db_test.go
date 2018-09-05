@@ -115,16 +115,16 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name2", true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name2"),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name3", true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name3"),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(3))
 		})
@@ -133,84 +133,84 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				PrepareTime:  null.NewInt(15, true),
-				Difficulty:   null.NewInt(2, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				PrepareTime:  null.IntFrom(15),
+				Difficulty:   null.IntFrom(2),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name2", true),
-				PrepareTime:  null.NewInt(20, true),
-				Difficulty:   null.NewInt(1, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name2"),
+				PrepareTime:  null.IntFrom(20),
+				Difficulty:   null.IntFrom(1),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name3", true),
-				PrepareTime:  null.NewInt(50, true),
-				Difficulty:   null.NewInt(3, true),
-				IsVegetarian: null.NewBool(true, true),
+				Name:         null.StringFrom("name3"),
+				PrepareTime:  null.IntFrom(50),
+				Difficulty:   null.IntFrom(3),
+				IsVegetarian: null.BoolFrom(true),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name4", true),
-				PrepareTime:  null.NewInt(60, true),
-				Difficulty:   null.NewInt(5, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name4"),
+				PrepareTime:  null.IntFrom(60),
+				Difficulty:   null.IntFrom(5),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name5", true),
-				PrepareTime:  null.NewInt(70, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(true, true),
+				Name:         null.StringFrom("name5"),
+				PrepareTime:  null.IntFrom(70),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(true),
 			}, "faketoken")
 			Expect(testDB.listRecipes(&filter{
-				name:  null.NewString("name", true),
+				name:  null.StringFrom("name"),
 				isSet: true,
 			})).To(HaveLen(5))
 			Expect(testDB.listRecipes(&filter{
-				name:  null.NewString("5", true),
+				name:  null.StringFrom("5"),
 				isSet: true,
 			})).To(HaveLen(1))
 			Expect(testDB.listRecipes(&filter{
-				name:  null.NewString("x", true),
+				name:  null.StringFrom("x"),
 				isSet: true,
 			})).To(HaveLen(0))
 			Expect(testDB.listRecipes(&filter{
-				isVegetarian: null.NewBool(true, true),
+				isVegetarian: null.BoolFrom(true),
 				isSet:        true,
 			})).To(HaveLen(2))
 			Expect(testDB.listRecipes(&filter{
-				difficultyTo: null.NewInt(3, true),
-				isVegetarian: null.NewBool(true, true),
+				difficultyTo: null.IntFrom(3),
+				isVegetarian: null.BoolFrom(true),
 				isSet:        true,
 			})).To(HaveLen(1))
 			Expect(testDB.listRecipes(&filter{
-				prepTimeTo: null.NewInt(60, true),
+				prepTimeTo: null.IntFrom(60),
 				isSet:      true,
 			})).To(HaveLen(4))
 			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom: null.NewInt(20, true),
-				prepTimeTo:   null.NewInt(60, true),
+				prepTimeFrom: null.IntFrom(20),
+				prepTimeTo:   null.IntFrom(60),
 				isSet:        true,
 			})).To(HaveLen(3))
 			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom: null.NewInt(20, true),
-				prepTimeTo:   null.NewInt(60, true),
-				difficultyTo: null.NewInt(3, true),
+				prepTimeFrom: null.IntFrom(20),
+				prepTimeTo:   null.IntFrom(60),
+				difficultyTo: null.IntFrom(3),
 				isSet:        true,
 			})).To(HaveLen(2))
 			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom:   null.NewInt(20, true),
-				prepTimeTo:     null.NewInt(60, true),
-				difficultyFrom: null.NewInt(2, true),
-				difficultyTo:   null.NewInt(4, true),
+				prepTimeFrom:   null.IntFrom(20),
+				prepTimeTo:     null.IntFrom(60),
+				difficultyFrom: null.IntFrom(2),
+				difficultyTo:   null.IntFrom(4),
 				isSet:          true,
 			})).To(HaveLen(1))
 			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom:   null.NewInt(20, true),
-				prepTimeTo:     null.NewInt(60, true),
-				difficultyFrom: null.NewInt(2, true),
-				difficultyTo:   null.NewInt(4, true),
-				isVegetarian:   null.NewBool(false, true),
+				prepTimeFrom:   null.IntFrom(20),
+				prepTimeTo:     null.IntFrom(60),
+				difficultyFrom: null.IntFrom(2),
+				difficultyTo:   null.IntFrom(4),
+				isVegetarian:   null.BoolFrom(false),
 				isSet:          true,
 			})).To(HaveLen(0))
 		})
@@ -257,8 +257,8 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			addedRecipe := testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			Expect(addedRecipe.ID).To(Equal(1))
 			Expect(addedRecipe.Name).To(Equal("name1"))
@@ -268,10 +268,10 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
 
 			addedRecipe = testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name2", true),
-				PrepareTime:  null.NewInt(2, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name2"),
+				PrepareTime:  null.IntFrom(2),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			Expect(addedRecipe.ID).To(Equal(2))
 			Expect(addedRecipe.Name).To(Equal("name2"))
@@ -285,8 +285,8 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faild_token")
 			Expect(actual).To(BeNil())
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(0))
@@ -316,10 +316,10 @@ var _ = Describe("Testing database object", func() {
 			('foo', 'faketoken')
 			`)
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				PrepareTime:  null.NewInt(2, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				PrepareTime:  null.IntFrom(2),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 		})
 		AfterEach(func() {
@@ -341,10 +341,10 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
-				Name:         null.NewString("name1_updated", true),
-				PrepareTime:  null.NewInt(3, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1_updated"),
+				PrepareTime:  null.IntFrom(3),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, 1, "faketoken")
 
 			Expect(actual.Name).To(Equal("name1_updated"))
@@ -357,10 +357,10 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
-				Name:         null.NewString("name1_updated", true),
-				PrepareTime:  null.NewInt(3, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1_updated"),
+				PrepareTime:  null.IntFrom(3),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, 2, "faketoken")
 
 			Expect(actual).To(BeNil())
@@ -370,10 +370,10 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
-				Name:         null.NewString("name1_updated", true),
-				PrepareTime:  null.NewInt(3, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1_updated"),
+				PrepareTime:  null.IntFrom(3),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, 1, "failed_faketoken")
 
 			Expect(actual).To(BeNil())
@@ -402,16 +402,16 @@ var _ = Describe("Testing database object", func() {
 			('foo', 'faketoken')
 			`)
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				PrepareTime:  null.NewInt(1, true),
-				Difficulty:   null.NewInt(2, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				PrepareTime:  null.IntFrom(1),
+				Difficulty:   null.IntFrom(2),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name2", true),
-				PrepareTime:  null.NewInt(2, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(true, true),
+				Name:         null.StringFrom("name2"),
+				PrepareTime:  null.IntFrom(2),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(true),
 			}, "faketoken")
 		})
 		AfterEach(func() {
@@ -486,10 +486,10 @@ var _ = Describe("Testing database object", func() {
 			('foo', 'faketoken')
 			`)
 			testDB.addRecipeByCredential(&PostRecipeArg{
-				Name:         null.NewString("name1", true),
-				PrepareTime:  null.NewInt(2, true),
-				Difficulty:   null.NewInt(4, true),
-				IsVegetarian: null.NewBool(false, true),
+				Name:         null.StringFrom("name1"),
+				PrepareTime:  null.IntFrom(2),
+				Difficulty:   null.IntFrom(4),
+				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
 		})
 		AfterEach(func() {
@@ -511,21 +511,21 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
-				Rating: null.NewInt(3, true),
+				Rating: null.IntFrom(3),
 			}, 1)
 			Expect(actual.Name).To(Equal("name1"))
 			Expect(actual.RatedNum.Int64).To(Equal(int64(1)))
 			Expect(actual.Rating.Float64).To(Equal(float64(3)))
 
 			actual = testDB.rateAndGetRecipe(&PostRateRecipeArg{
-				Rating: null.NewInt(4, true),
+				Rating: null.IntFrom(4),
 			}, 1)
 			Expect(actual.Name).To(Equal("name1"))
 			Expect(actual.RatedNum.Int64).To(Equal(int64(2)))
 			Expect(actual.Rating.Float64).To(Equal(float64(3.5)))
 
 			actual = testDB.rateAndGetRecipe(&PostRateRecipeArg{
-				Rating: null.NewInt(5, true),
+				Rating: null.IntFrom(5),
 			}, 1)
 			Expect(actual.Name).To(Equal("name1"))
 			Expect(actual.RatedNum.Int64).To(Equal(int64(3)))
@@ -536,7 +536,7 @@ var _ = Describe("Testing database object", func() {
 			defer testDB.close()
 
 			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
-				Rating: null.NewInt(3, true),
+				Rating: null.IntFrom(3),
 			}, 2)
 			Expect(actual).To(BeNil())
 		})

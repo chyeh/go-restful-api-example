@@ -20,7 +20,7 @@ type filter struct {
 func newFilter(c *gin.Context) *filter {
 	var f filter
 	if v, ok := c.GetQuery("name"); ok {
-		f.name = null.NewString(v, true)
+		f.name = null.StringFrom(v)
 		f.isSet = true
 	}
 	if v, ok := c.GetQuery("prepare_time_from"); ok {
@@ -28,7 +28,7 @@ func newFilter(c *gin.Context) *filter {
 		if err != nil {
 			panic(err)
 		}
-		f.prepTimeFrom = null.NewInt(n, true)
+		f.prepTimeFrom = null.IntFrom(n)
 		f.isSet = true
 	}
 	if v, ok := c.GetQuery("prepare_time_to"); ok {
@@ -36,7 +36,7 @@ func newFilter(c *gin.Context) *filter {
 		if err != nil {
 			panic(err)
 		}
-		f.prepTimeTo = null.NewInt(n, true)
+		f.prepTimeTo = null.IntFrom(n)
 		f.isSet = true
 	}
 	if v, ok := c.GetQuery("difficulty_from"); ok {
@@ -44,7 +44,7 @@ func newFilter(c *gin.Context) *filter {
 		if err != nil {
 			panic(err)
 		}
-		f.difficultyFrom = null.NewInt(n, true)
+		f.difficultyFrom = null.IntFrom(n)
 		f.isSet = true
 	}
 	if v, ok := c.GetQuery("difficulty_to"); ok {
@@ -52,7 +52,7 @@ func newFilter(c *gin.Context) *filter {
 		if err != nil {
 			panic(err)
 		}
-		f.difficultyTo = null.NewInt(n, true)
+		f.difficultyTo = null.IntFrom(n)
 		f.isSet = true
 	}
 	if v, ok := c.GetQuery("is_vegetarian"); ok {
@@ -60,7 +60,7 @@ func newFilter(c *gin.Context) *filter {
 		if err != nil {
 			panic(err)
 		}
-		f.isVegetarian = null.NewBool(b, true)
+		f.isVegetarian = null.BoolFrom(b)
 		f.isSet = true
 	}
 	return &f
