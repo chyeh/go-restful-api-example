@@ -59,7 +59,7 @@ func (s *apiServer) postRecipe(c *gin.Context) {
 
 	arg.validate()
 	token := c.GetHeader("Authorization")
-	if res := s.datastore.addRecipe(arg, token); res != nil {
+	if res := s.datastore.addRecipeByCredential(arg, token); res != nil {
 		c.JSON(http.StatusOK, res)
 		return
 	}

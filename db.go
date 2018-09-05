@@ -3,20 +3,11 @@ package main
 import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	null "gopkg.in/guregu/null.v3"
 )
-
-type Recipe struct {
-	ID           int      `json:"id" db:"r_id"`
-	Name         string   `json:"name" db:"r_name"`
-	PrepareTime  null.Int `json:"prepare_time" db:"r_prep_time"`
-	Difficulty   null.Int `json:"difficulty" db:"r_difficulty"`
-	IsVegetarian bool     `json:"is_vegetarian" db:"r_vegetarian"`
-}
 
 type datastore interface {
 	listRecipes(*filter) []*Recipe
-	addRecipe(*PostRecipeArg, string) *Recipe
+	addRecipeByCredential(*PostRecipeArg, string) *Recipe
 	getRecipeByID(int) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
 	deleteAndGetRecipeByCredential(int, string) *Recipe
@@ -51,7 +42,7 @@ func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
 	return res
 }
 
-func (d *sqlxPostgreSQL) addRecipe(arg *PostRecipeArg, token string) *Recipe {
+func (d *sqlxPostgreSQL) addRecipeByCredential(arg *PostRecipeArg, token string) *Recipe {
 	var res Recipe
 	var userID int
 	tx := d.sqlxDB.MustBegin()

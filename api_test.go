@@ -18,7 +18,7 @@ func (md *mockDatastore) listRecipes(f *filter) []*Recipe {
 	return md.dataFunc().([]*Recipe)
 }
 
-func (md *mockDatastore) addRecipe(arg *PostRecipeArg, token string) *Recipe {
+func (md *mockDatastore) addRecipeByCredential(arg *PostRecipeArg, token string) *Recipe {
 	if d := md.dataFunc(); d != nil {
 		return md.dataFunc().(*Recipe)
 	}

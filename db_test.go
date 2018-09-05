@@ -110,15 +110,15 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name2", true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name3", true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
@@ -128,31 +128,31 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				PrepareTime:  null.NewInt(15, true),
 				Difficulty:   null.NewInt(2, true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name2", true),
 				PrepareTime:  null.NewInt(20, true),
 				Difficulty:   null.NewInt(1, true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name3", true),
 				PrepareTime:  null.NewInt(50, true),
 				Difficulty:   null.NewInt(3, true),
 				IsVegetarian: null.NewBool(true, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name4", true),
 				PrepareTime:  null.NewInt(60, true),
 				Difficulty:   null.NewInt(5, true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name5", true),
 				PrepareTime:  null.NewInt(70, true),
 				Difficulty:   null.NewInt(4, true),
@@ -252,7 +252,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			addedRecipe := testDB.addRecipe(&PostRecipeArg{
+			addedRecipe := testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
@@ -263,7 +263,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(addedRecipe.IsVegetarian).To(BeFalse())
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
 
-			addedRecipe = testDB.addRecipe(&PostRecipeArg{
+			addedRecipe = testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name2", true),
 				PrepareTime:  null.NewInt(2, true),
 				Difficulty:   null.NewInt(4, true),
@@ -280,7 +280,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
 			defer testDB.close()
 
-			actual := testDB.addRecipe(&PostRecipeArg{
+			actual := testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faild_token")
@@ -311,7 +311,7 @@ var _ = Describe("Testing database object", func() {
 			VALUES
 			('foo', 'faketoken')
 			`)
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				PrepareTime:  null.NewInt(2, true),
 				Difficulty:   null.NewInt(4, true),
@@ -397,13 +397,13 @@ var _ = Describe("Testing database object", func() {
 			VALUES
 			('foo', 'faketoken')
 			`)
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name1", true),
 				PrepareTime:  null.NewInt(1, true),
 				Difficulty:   null.NewInt(2, true),
 				IsVegetarian: null.NewBool(false, true),
 			}, "faketoken")
-			testDB.addRecipe(&PostRecipeArg{
+			testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.NewString("name2", true),
 				PrepareTime:  null.NewInt(2, true),
 				Difficulty:   null.NewInt(4, true),
