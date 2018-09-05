@@ -8,7 +8,9 @@ import (
 )
 
 const (
-	testRecipeTableSchema = `
+	testDBConnectionString             = "postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable"
+	testDBConnectionStringWithDatabase = "postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable"
+	testRecipeTableSchema              = `
 	CREATE TABLE recipe(
 		r_id SERIAL PRIMARY KEY,
 		r_name VARCHAR(512) NOT NULL,
@@ -45,7 +47,7 @@ const (
 
 var _ = Describe("Testing database object", func() {
 	BeforeEach(func() {
-		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable")
+		testDB := newSqlxPostgreSQL(testDBConnectionString)
 		defer testDB.close()
 
 		testDB.sqlxDB.MustExec(`
@@ -56,7 +58,7 @@ var _ = Describe("Testing database object", func() {
 		`)
 	})
 	AfterEach(func() {
-		testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable")
+		testDB := newSqlxPostgreSQL(testDBConnectionString)
 		defer testDB.close()
 
 		testDB.sqlxDB.MustExec(`
@@ -65,7 +67,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("listing recipes", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -87,7 +89,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -101,7 +103,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("lists empty table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.listRecipes(&filter{})
@@ -109,7 +111,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual).To(HaveLen(0))
 		})
 		It("lists non-empty table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.addRecipeByCredential(&PostRecipeArg{
@@ -127,7 +129,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(3))
 		})
 		It("lists non-empty table with filters", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.addRecipeByCredential(&PostRecipeArg{
@@ -215,7 +217,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("adding a new recipe", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -237,7 +239,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -251,7 +253,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("adds a record in the recipe table and return the corresponding record", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			addedRecipe := testDB.addRecipeByCredential(&PostRecipeArg{
@@ -279,7 +281,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
 		})
 		It("does nothing if the credential is not valid", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.addRecipeByCredential(&PostRecipeArg{
@@ -292,7 +294,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("updating a recipe", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -321,7 +323,7 @@ var _ = Describe("Testing database object", func() {
 			}, "faketoken")
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -335,7 +337,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("updates a existent record in the recipe table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
@@ -351,7 +353,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual.IsVegetarian).To(BeFalse())
 		})
 		It("does nothing if the recipe doesn't exist", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
@@ -364,7 +366,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual).To(BeNil())
 		})
 		It("does nothing if the access to the recipe is not authorized", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.updateAndGetRecipeByCredential(&PutRecipeArg{
@@ -379,7 +381,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("deleting a recipe", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -413,7 +415,7 @@ var _ = Describe("Testing database object", func() {
 			}, "faketoken")
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -427,7 +429,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("deletes a existent record in the recipe table", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			deletedRecipe := testDB.deleteAndGetRecipeByCredential(1, "faketoken")
@@ -440,7 +442,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
 		})
 		It("does nothing if the recipe doesn't exist", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			deletedRecipe := testDB.deleteAndGetRecipeByCredential(3, "faketoken")
@@ -450,7 +452,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
 		})
 		It("does nothing if the access to the recipe is not authorized", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			deletedRecipe := testDB.deleteAndGetRecipeByCredential(1, "failed_token")
@@ -462,7 +464,7 @@ var _ = Describe("Testing database object", func() {
 	})
 	Context("rating a recipe", func() {
 		BeforeEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -491,7 +493,7 @@ var _ = Describe("Testing database object", func() {
 			}, "faketoken")
 		})
 		AfterEach(func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			testDB.sqlxDB.MustExec(`
@@ -505,7 +507,7 @@ var _ = Describe("Testing database object", func() {
 			`)
 		})
 		It("rates a existent recipe", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
@@ -530,7 +532,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual.Rating.Float64).To(Equal(float64(4)))
 		})
 		It("does nothing if the recipe doesn't exist", func() {
-			testDB := newSqlxPostgreSQL("postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable")
+			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
 			actual := testDB.rateAndGetRecipe(&PostRateRecipeArg{
