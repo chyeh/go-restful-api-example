@@ -43,6 +43,7 @@ func (s *apiServer) routes() {
 	s.httpServer.router.GET("/recipes/:id", s.getRecipe)
 	s.httpServer.router.PUT("/recipes/:id", s.putRecipe)
 	s.httpServer.router.DELETE("/recipes/:id", s.deleteRecipe)
+	s.httpServer.router.POST("/recipes/:id/rating", s.postRateRecipe)
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
@@ -70,10 +71,14 @@ func (s *apiServer) getRecipe(c *gin.Context) {
 	recipeID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.AbortWithStatus(http.StatusNotFound)
-	} else if res := s.datastore.getRecipeByID(recipeID); res != nil {
+		return
+	}
+
+	if res := s.datastore.getRecipeByID(recipeID); res != nil {
 		c.JSON(http.StatusOK, res)
 		return
 	}
+
 	c.AbortWithStatus(http.StatusNotFound)
 }
 
@@ -108,6 +113,28 @@ func (s *apiServer) deleteRecipe(c *gin.Context) {
 
 	token := c.GetHeader("Authorization")
 	if recipe := s.datastore.deleteAndGetRecipeByCredential(recipeID, token); recipe != nil {
+		c.JSON(http.StatusOK, recipe)
+		return
+	}
+
+	c.AbortWithStatus(http.StatusNotFound)
+}
+
+func (s *apiServer) postRateRecipe(c *gin.Context) {
+	recipeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	arg := &PostRateRecipeArg{}
+	if err := c.BindJSON(arg); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	arg.validate()
+	if recipe := s.datastore.rateAndGetRecipe(arg, recipeID); recipe != nil {
 		c.JSON(http.StatusOK, recipe)
 		return
 	}

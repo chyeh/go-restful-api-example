@@ -14,7 +14,9 @@ const (
 		r_name VARCHAR(512) NOT NULL,
 		r_prep_time SMALLINT,
 		r_difficulty SMALLINT,
-		r_vegetarian BOOLEAN NOT NULL
+		r_vegetarian BOOLEAN NOT NULL,
+		r_rating REAL NOT NULL DEFAULT 0.0,
+		r_rated_num INTEGER NOT NULL DEFAULT 0
 	)
 	`
 	testHellofreshUserTableSchema = `

@@ -11,6 +11,7 @@ type datastore interface {
 	getRecipeByID(int) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
 	deleteAndGetRecipeByCredential(int, string) *Recipe
+	rateAndGetRecipe(*PostRateRecipeArg, int) *Recipe
 }
 
 type sqlxPostgreSQL struct {
@@ -35,7 +36,7 @@ func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
 	}
 	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
-	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
 	`+f.whereClause()); err != nil {
 		panic(err)
 	}
@@ -62,7 +63,7 @@ func (d *sqlxPostgreSQL) addRecipeByCredential(arg *PostRecipeArg, token string)
 		panic(err)
 	}
 	if err := tx.Get(&res, `
-	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
 	WHERE r_id = (
 		SELECT currval(pg_get_serial_sequence('recipe','r_id'))
 	)
@@ -80,7 +81,7 @@ func (d *sqlxPostgreSQL) addRecipeByCredential(arg *PostRecipeArg, token string)
 func (d *sqlxPostgreSQL) getRecipeByID(id int) *Recipe {
 	var res Recipe
 	if err := d.sqlxDB.Get(&res, `
-	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
 	WHERE r_id = $1
 	`, id); err != nil {
 		return nil
@@ -92,7 +93,7 @@ func (d *sqlxPostgreSQL) updateAndGetRecipeByCredential(arg *PutRecipeArg, id in
 	var res Recipe
 	tx := d.sqlxDB.MustBegin()
 	if err := d.sqlxDB.Get(&res, `
-	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
 	WHERE r_id = $1
 	`, id); err != nil {
 		if err := tx.Rollback(); err != nil {
@@ -134,7 +135,7 @@ func (d *sqlxPostgreSQL) deleteAndGetRecipeByCredential(id int, token string) *R
 	var res Recipe
 	tx := d.sqlxDB.MustBegin()
 	if err := d.sqlxDB.Get(&res, `
-	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian FROM recipe
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
 	WHERE r_id = $1
 	`, id); err != nil {
 		if err := tx.Rollback(); err != nil {
@@ -155,6 +156,37 @@ func (d *sqlxPostgreSQL) deleteAndGetRecipeByCredential(id int, token string) *R
 		)
 	)
 	`, id, token)
+	if cnt, err := slqResult.RowsAffected(); err != nil {
+		panic(err)
+	} else if cnt == 0 {
+		if err := tx.Rollback(); err != nil {
+			panic(err)
+		}
+		return nil
+	}
+	tx.Commit()
+	return &res
+}
+
+func (d *sqlxPostgreSQL) rateAndGetRecipe(arg *PostRateRecipeArg, id int) *Recipe {
+	var res Recipe
+	tx := d.sqlxDB.MustBegin()
+	if err := d.sqlxDB.Get(&res, `
+	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
+	WHERE r_id = $1
+	`, id); err != nil {
+		if err := tx.Rollback(); err != nil {
+			panic(err)
+		}
+		return nil
+	}
+	arg.updateRecipe(&res)
+	slqResult := tx.MustExec(`
+	UPDATE recipe
+	SET	r_rating = ((r_rating*r_rated_num) + $1)/(r_rated_num + 1),
+		r_rated_num = r_rated_num + 1
+	WHERE r_id = $2
+	`, arg.Rating, id)
 	if cnt, err := slqResult.RowsAffected(); err != nil {
 		panic(err)
 	} else if cnt == 0 {
