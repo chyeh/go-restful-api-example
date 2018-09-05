@@ -323,3 +323,61 @@ var _ = Describe("Deleting a recipe by ID", func() {
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
 	})
 })
+
+var _ = Describe("Rating a recipe by ID", func() {
+	It("Rates a recipe and gets the updated JSON object", func() {
+		server := newTestAPIServer(&Recipe{3, "name3", null.NewInt(5, true), null.NewInt(3, true), false, null.NewFloat(3.0, true), null.NewInt(1, true)})
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		{
+			"rating":3
+		}
+		`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		server.httpServer.router.ServeHTTP(rr, req)
+
+		jsonObj := newJSON(rr.Body.Bytes())
+		GinkgoT().Logf("[Rate A Recipe By ID] JSON Result: %s", jsonObj.pretty())
+		Expect(rr.Code).To(Equal(http.StatusOK))
+		Expect(jsonObj.Get("rating").MustFloat64()).To(Equal(3.0))
+		Expect(jsonObj.Get("rated_num").MustInt()).To(Equal(1))
+	})
+	It("responses with [404 Not Found] when getting an invalid parameter", func() {
+		server := newTestAPIServer(&Recipe{3, "name3", null.NewInt(5, true), null.NewInt(0, false), false, null.NewFloat(3.0, true), null.NewInt(0, true)})
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/recipes/ff", bytes.NewBuffer([]byte(`
+		{
+			"rating":3
+		}
+		`)))
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusNotFound))
+	})
+	It("responses with [404 Not Found] when the recipe is not found", func() {
+		server := newTestAPIServer(nil)
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		{
+			"rating":3
+		}
+		`)))
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusNotFound))
+	})
+	It("responses with [400 Bad Request] if the JSON argument is invalid", func() {
+		server := newTestAPIServer(&Recipe{3, "name3", null.NewInt(5, true), null.NewInt(0, false), false, null.NewFloat(3.0, true), null.NewInt(0, true)})
+		rr := httptest.NewRecorder()
+		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		{
+			"rating":3,
+		}
+		`)))
+		req.Header.Set("Content-Type", "application/json")
+
+		server.httpServer.router.ServeHTTP(rr, req)
+		Expect(rr.Code).To(Equal(http.StatusBadRequest))
+	})
+})
