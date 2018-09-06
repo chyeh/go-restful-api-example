@@ -6,7 +6,7 @@ import (
 )
 
 type datastore interface {
-	listRecipes(*ListFilter) []*Recipe
+	listRecipes(*ListFilter, *paging) []*Recipe
 	addRecipeByCredential(*PostRecipeArg, string) *Recipe
 	getRecipeByID(int) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
@@ -30,14 +30,14 @@ func (d *sqlxPostgreSQL) close() {
 	}
 }
 
-func (d *sqlxPostgreSQL) listRecipes(f *ListFilter) []*Recipe {
+func (d *sqlxPostgreSQL) listRecipes(f *ListFilter, p *paging) []*Recipe {
 	if f == nil {
 		panic("nil filter not allowed")
 	}
 	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
 	SELECT r_id, r_name, r_prep_time, r_difficulty, r_vegetarian, r_rating, r_rated_num FROM recipe
-	`+f.whereClause()); err != nil {
+	`+f.whereClause()+`ORDER BY r_id`+p.limitClause()+p.offsetClause()); err != nil {
 		panic(err)
 	}
 	return res

@@ -52,7 +52,10 @@ func (s *apiServer) getRecipes(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	res := s.datastore.listRecipes(filter)
+
+	paging := newPaging()
+	bindPagiing(c, paging)
+	res := s.datastore.listRecipes(filter, paging)
 	c.JSON(http.StatusOK, res)
 }
 

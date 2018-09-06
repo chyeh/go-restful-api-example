@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	validator "gopkg.in/go-playground/validator.v9"
 	null "gopkg.in/guregu/null.v3"
 )
@@ -126,4 +127,39 @@ func (f *ListFilter) whereClause() string {
 		clause += " true "
 	}
 	return clause
+}
+
+type paging struct {
+	pageNumber int
+	pageSize   int
+}
+
+func newPaging() *paging {
+	return &paging{
+		pageNumber: 1,
+		pageSize:   20,
+	}
+}
+
+func bindPagiing(c *gin.Context, p *paging) {
+	if size := c.Request.Header.Get("page-size"); size != "" {
+		parsed, err := strconv.ParseInt(size, 10, 64)
+		if err == nil {
+			p.pageSize = int(parsed)
+		}
+	}
+	if num := c.Request.Header.Get("page-number"); num != "" {
+		parsed, err := strconv.ParseInt(num, 10, 64)
+		if err == nil {
+			p.pageNumber = int(parsed)
+		}
+	}
+}
+
+func (p *paging) limitClause() string {
+	return fmt.Sprintf(" LIMIT %d ", p.pageSize)
+}
+
+func (p *paging) offsetClause() string {
+	return fmt.Sprintf(" OFFSET %d ", (p.pageNumber-1)*p.pageSize)
 }
