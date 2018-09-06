@@ -136,7 +136,10 @@ func (s *apiServer) postRateRecipe(c *gin.Context) {
 		return
 	}
 
-	arg.validate()
+	if err := validate.Struct(arg); err != nil {
+		panic(err)
+	}
+
 	if recipe := s.datastore.rateAndGetRecipe(arg, recipeID); recipe != nil {
 		c.JSON(http.StatusOK, recipe)
 		return

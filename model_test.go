@@ -53,3 +53,33 @@ func TestPostRecipeArg(t *testing.T) {
 		assert.NoError(t, validate.Struct(v.input), "Case [%d]", i)
 	}
 }
+
+func TestPostRateRecipeArg(t *testing.T) {
+	testErrorCases := []struct {
+		input PostRateRecipeArg
+	}{
+		{PostRateRecipeArg{null.IntFromPtr(nil)}},
+		{PostRateRecipeArg{null.IntFrom(-1)}},
+		{PostRateRecipeArg{null.IntFrom(-0)}},
+		{PostRateRecipeArg{null.IntFrom(6)}},
+		{PostRateRecipeArg{null.IntFrom(7)}},
+	}
+	for i, v := range testErrorCases {
+		validate.Struct(v.input)
+		assert.Error(t, validate.Struct(v.input), "Case [%d]", i)
+	}
+
+	testNoErrorCases := []struct {
+		input PostRateRecipeArg
+	}{
+		{PostRateRecipeArg{null.IntFrom(1)}},
+		{PostRateRecipeArg{null.IntFrom(2)}},
+		{PostRateRecipeArg{null.IntFrom(3)}},
+		{PostRateRecipeArg{null.IntFrom(4)}},
+		{PostRateRecipeArg{null.IntFrom(5)}},
+	}
+	for i, v := range testNoErrorCases {
+		validate.Struct(v.input)
+		assert.NoError(t, validate.Struct(v.input), "Case [%d]", i)
+	}
+}

@@ -180,7 +180,7 @@ func (d *sqlxPostgreSQL) rateAndGetRecipe(arg *PostRateRecipeArg, id int) *Recip
 		}
 		return nil
 	}
-	arg.updateRecipe(&res)
+	arg.updateRatedRecipe(&res)
 	slqResult := tx.MustExec(`
 	UPDATE recipe
 	SET	r_rating = ((r_rating*r_rated_num) + $1)/(r_rated_num + 1),

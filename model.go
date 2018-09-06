@@ -81,16 +81,10 @@ func (a *PutRecipeArg) overwriteRecipe(r *Recipe) {
 }
 
 type PostRateRecipeArg struct {
-	Rating null.Int `json:"rating"`
+	Rating null.Int `json:"rating" validate:"required,min=1,max=5"`
 }
 
-func (a *PostRateRecipeArg) validate() {
-	if !a.Rating.Valid {
-		panic("field 'Rating' not valid")
-	}
-}
-
-func (a *PostRateRecipeArg) updateRecipe(r *Recipe) {
+func (a *PostRateRecipeArg) updateRatedRecipe(r *Recipe) {
 	if r == nil {
 		return
 	}
