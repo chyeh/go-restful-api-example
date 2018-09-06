@@ -12,20 +12,28 @@ func TestPostRecipeArg(t *testing.T) {
 		input PostRecipeArg
 	}{
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFrom(3), null.BoolFrom(false)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFrom(3), null.BoolFrom(false)}},
 		{PostRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
 
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFrom(false)}},
 		{PostRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
 
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFrom(false)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFrom(false)}},
 		{PostRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
 
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
 		{PostRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
 		{PostRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+		{PostRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
 
 		{PostRecipeArg{null.StringFrom("name"), null.IntFrom(0), null.IntFrom(3), null.BoolFrom(false)}},
 		{PostRecipeArg{null.StringFrom("name"), null.IntFrom(-1), null.IntFrom(3), null.BoolFrom(false)}},
@@ -36,8 +44,7 @@ func TestPostRecipeArg(t *testing.T) {
 		{PostRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(5), null.BoolFrom(false)}},
 	}
 	for i, v := range testErrorCases {
-		validate.Struct(v.input)
-		assert.Error(t, validate.Struct(v.input), "Case [%d]", i)
+		assert.Error(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
 	}
 
 	testNoErrorCases := []struct {
@@ -49,8 +56,7 @@ func TestPostRecipeArg(t *testing.T) {
 		{PostRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
 	}
 	for i, v := range testNoErrorCases {
-		validate.Struct(v.input)
-		assert.NoError(t, validate.Struct(v.input), "Case [%d]", i)
+		assert.NoError(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
 	}
 }
 
@@ -65,8 +71,7 @@ func TestPostRateRecipeArg(t *testing.T) {
 		{PostRateRecipeArg{null.IntFrom(7)}},
 	}
 	for i, v := range testErrorCases {
-		validate.Struct(v.input)
-		assert.Error(t, validate.Struct(v.input), "Case [%d]", i)
+		assert.Error(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
 	}
 
 	testNoErrorCases := []struct {
@@ -79,7 +84,60 @@ func TestPostRateRecipeArg(t *testing.T) {
 		{PostRateRecipeArg{null.IntFrom(5)}},
 	}
 	for i, v := range testNoErrorCases {
-		validate.Struct(v.input)
-		assert.NoError(t, validate.Struct(v.input), "Case [%d]", i)
+		assert.NoError(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
+	}
+}
+
+func TestPutRecipeArg(t *testing.T) {
+	testErrorCases := []struct {
+		input PutRecipeArg
+	}{
+		{PutRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom(""), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(0), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(-1), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(-2), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(0), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(-1), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(4), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(5), null.BoolFromPtr(nil)}},
+	}
+	for i, v := range testErrorCases {
+		assert.Error(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
+	}
+
+	testNoErrorCases := []struct {
+		input PutRecipeArg
+	}{
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFrom(3), null.BoolFromPtr(nil)}},
+
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFromPtr(nil)}},
+
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+		{PutRecipeArg{null.StringFromPtr(nil), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFromPtr(nil)}},
+
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFrom(5), null.IntFromPtr(nil), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFrom(3), null.BoolFrom(false)}},
+		{PutRecipeArg{null.StringFrom("name"), null.IntFromPtr(nil), null.IntFromPtr(nil), null.BoolFrom(false)}},
+	}
+	for i, v := range testNoErrorCases {
+		assert.NoError(t, validate.Struct(v.input), "Case [%d]: %#v", i, v.input)
 	}
 }

@@ -328,7 +328,7 @@ var _ = Describe("Rating a recipe by ID", func() {
 	It("Rates a recipe and gets the updated JSON object", func() {
 		server := newTestAPIServer(&Recipe{3, "name3", null.IntFrom(5), null.IntFrom(3), false, null.FloatFrom(3.0), null.IntFrom(1)})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("POST", "/recipes/3/rating", bytes.NewBuffer([]byte(`
 		{
 			"rating":3
 		}
@@ -346,7 +346,7 @@ var _ = Describe("Rating a recipe by ID", func() {
 	It("responses with [404 Not Found] when getting an invalid parameter", func() {
 		server := newTestAPIServer(&Recipe{3, "name3", null.IntFrom(5), null.IntFromPtr(nil), false, null.FloatFrom(3.0), null.IntFrom(0)})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipes/ff", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("POST", "/recipes/ff/rating", bytes.NewBuffer([]byte(`
 		{
 			"rating":3
 		}
@@ -358,7 +358,7 @@ var _ = Describe("Rating a recipe by ID", func() {
 	It("responses with [404 Not Found] when the recipe is not found", func() {
 		server := newTestAPIServer(nil)
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("POST", "/recipes/3/rating", bytes.NewBuffer([]byte(`
 		{
 			"rating":3
 		}
@@ -370,7 +370,7 @@ var _ = Describe("Rating a recipe by ID", func() {
 	It("responses with [400 Bad Request] if the JSON argument is invalid", func() {
 		server := newTestAPIServer(&Recipe{3, "name3", null.IntFrom(5), null.IntFromPtr(nil), false, null.FloatFrom(3.0), null.IntFrom(0)})
 		rr := httptest.NewRecorder()
-		req, _ := http.NewRequest("PUT", "/recipes/3", bytes.NewBuffer([]byte(`
+		req, _ := http.NewRequest("POST", "/recipes/3/rating", bytes.NewBuffer([]byte(`
 		{
 			"rating":3,
 		}

@@ -13,7 +13,7 @@ var validate = func() *validator.Validate {
 	v := validator.New()
 	v.RegisterCustomTypeFunc(
 		func(field reflect.Value) interface{} {
-			return field.Interface().(null.String).String
+			return field.Interface().(null.String).Ptr()
 		},
 		null.String{},
 	)
@@ -49,16 +49,16 @@ type Recipe struct {
 }
 
 type PostRecipeArg struct {
-	Name         null.String `json:"name" db:"r_name" validate:"required"`
+	Name         null.String `json:"name" db:"r_name" validate:"required,gt=0"`
 	PrepareTime  null.Int    `json:"prepare_time" db:"r_prep_time" validate:"omitempty,gt=0"`
 	Difficulty   null.Int    `json:"difficulty" db:"r_difficulty" validate:"omitempty,min=1,max=3"`
 	IsVegetarian null.Bool   `json:"is_vegetarian" db:"r_vegetarian" validate:"required"`
 }
 
 type PutRecipeArg struct {
-	Name         null.String `json:"name"`
-	PrepareTime  null.Int    `json:"prepare_time"`
-	Difficulty   null.Int    `json:"difficulty"`
+	Name         null.String `json:"name" validate:"omitempty,gt=0"`
+	PrepareTime  null.Int    `json:"prepare_time" validate:"omitempty,gt=0"`
+	Difficulty   null.Int    `json:"difficulty" validate:"omitempty,min=1,max=3"`
 	IsVegetarian null.Bool   `json:"is_vegetarian"`
 }
 
