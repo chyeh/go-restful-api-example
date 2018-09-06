@@ -56,6 +56,9 @@ func (s *apiServer) getRecipes(c *gin.Context) {
 	paging := newPaging()
 	bindPagiing(c, paging)
 	res := s.datastore.listRecipes(filter, paging)
+	if res == nil {
+		panic("got nil in method listRecipes")
+	}
 	c.JSON(http.StatusOK, res)
 }
 

@@ -31,8 +31,8 @@ func (d *sqlxPostgreSQL) close() {
 }
 
 func (d *sqlxPostgreSQL) listRecipes(f *ListFilter, p *paging) []*Recipe {
-	if f == nil {
-		panic("nil filter not allowed")
+	if f == nil || p == nil {
+		panic("nil *ListFilter or *paging variable not allowed")
 	}
 	res := make([]*Recipe, 0)
 	if err := d.sqlxDB.Select(&res, `
