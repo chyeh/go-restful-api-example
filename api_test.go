@@ -14,7 +14,7 @@ type mockDatastore struct {
 	dataFunc func() interface{}
 }
 
-func (md *mockDatastore) listRecipes(f *filter) []*Recipe {
+func (md *mockDatastore) listRecipes(f *ListFilter) []*Recipe {
 	return md.dataFunc().([]*Recipe)
 }
 

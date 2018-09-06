@@ -6,7 +6,7 @@ import (
 )
 
 type datastore interface {
-	listRecipes(*filter) []*Recipe
+	listRecipes(*ListFilter) []*Recipe
 	addRecipeByCredential(*PostRecipeArg, string) *Recipe
 	getRecipeByID(int) *Recipe
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
@@ -30,7 +30,7 @@ func (d *sqlxPostgreSQL) close() {
 	}
 }
 
-func (d *sqlxPostgreSQL) listRecipes(f *filter) []*Recipe {
+func (d *sqlxPostgreSQL) listRecipes(f *ListFilter) []*Recipe {
 	if f == nil {
 		panic("nil filter not allowed")
 	}

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	validator "gopkg.in/go-playground/validator.v9"
 	null "gopkg.in/guregu/null.v3"
 )
@@ -92,88 +92,38 @@ func (a *PostRateRecipeArg) updateRatedRecipe(r *Recipe) {
 	r.RatedNum.Int64++
 }
 
-type filter struct {
-	isSet          bool
-	name           null.String
-	prepTimeFrom   null.Int
-	prepTimeTo     null.Int
-	difficultyFrom null.Int
-	difficultyTo   null.Int
-	isVegetarian   null.Bool
+type ListFilter struct {
+	Name           string `form:"name"`
+	PrepTimeFrom   int    `form:"prepare_time_from"`
+	PrepTimeTo     int    `form:"prepare_time_to"`
+	DifficultyFrom int    `form:"difficulty_from"`
+	DifficultyTo   int    `form:"difficulty_to"`
+	IsVegetarian   string `form:"is_vegetarian"`
 }
 
-func newFilter(c *gin.Context) *filter {
-	var f filter
-	if v, ok := c.GetQuery("name"); ok {
-		f.name = null.StringFrom(v)
-		f.isSet = true
-	}
-	if v, ok := c.GetQuery("prepare_time_from"); ok {
-		n, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		f.prepTimeFrom = null.IntFrom(n)
-		f.isSet = true
-	}
-	if v, ok := c.GetQuery("prepare_time_to"); ok {
-		n, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		f.prepTimeTo = null.IntFrom(n)
-		f.isSet = true
-	}
-	if v, ok := c.GetQuery("difficulty_from"); ok {
-		n, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		f.difficultyFrom = null.IntFrom(n)
-		f.isSet = true
-	}
-	if v, ok := c.GetQuery("difficulty_to"); ok {
-		n, err := strconv.ParseInt(v, 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		f.difficultyTo = null.IntFrom(n)
-		f.isSet = true
-	}
-	if v, ok := c.GetQuery("is_vegetarian"); ok {
-		b, err := strconv.ParseBool(v)
-		if err != nil {
-			panic(err)
-		}
-		f.isVegetarian = null.BoolFrom(b)
-		f.isSet = true
-	}
-	return &f
-}
-
-func (f *filter) whereClause() string {
-	if !f.isSet {
-		return ""
-	}
+func (f *ListFilter) whereClause() string {
 	clause := " WHERE "
-	if f.name.Valid {
-		clause += (" r_name LIKE '%" + f.name.String + "%' AND ")
+	clause += (" r_name LIKE '%" + f.Name + "%' AND ")
+	if f.PrepTimeFrom != 0 {
+		clause += fmt.Sprintf(" r_prep_time >= %d AND ", f.PrepTimeFrom)
 	}
-	if f.prepTimeFrom.Valid {
-		clause += (" r_prep_time >= " + strconv.Itoa(int(f.prepTimeFrom.Int64)) + " AND ")
+	if f.PrepTimeTo != 0 {
+		clause += fmt.Sprintf(" r_prep_time <= %d AND ", f.PrepTimeTo)
 	}
-	if f.prepTimeTo.Valid {
-		clause += (" r_prep_time <= " + strconv.Itoa(int(f.prepTimeTo.Int64)) + " AND ")
+	if f.DifficultyFrom != 0 {
+		clause += fmt.Sprintf(" r_difficulty >= %d AND ", f.DifficultyFrom)
 	}
-	if f.difficultyFrom.Valid {
-		clause += (" r_difficulty >= " + strconv.Itoa(int(f.difficultyFrom.Int64)) + " AND ")
+	if f.DifficultyTo != 0 {
+		clause += fmt.Sprintf(" r_difficulty <= %d AND ", f.DifficultyTo)
 	}
-	if f.difficultyTo.Valid {
-		clause += (" r_difficulty <= " + strconv.Itoa(int(f.difficultyTo.Int64)) + " AND ")
+	if f.IsVegetarian != "" {
+		b, err := strconv.ParseBool(f.IsVegetarian)
+		if err != nil {
+			panic(err)
+		}
+		clause += fmt.Sprintf(" r_vegetarian = %v ", b)
+	} else {
+		clause += " true "
 	}
-	if f.isVegetarian.Valid {
-		clause += (" r_vegetarian = " + strconv.FormatBool(f.isVegetarian.Bool) + " AND ")
-	}
-	clause += " true "
 	return clause
 }

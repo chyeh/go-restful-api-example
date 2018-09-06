@@ -47,7 +47,12 @@ func (s *apiServer) routes() {
 }
 
 func (s *apiServer) getRecipes(c *gin.Context) {
-	res := s.datastore.listRecipes(newFilter(c))
+	filter := &ListFilter{}
+	if err := c.BindQuery(filter); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	res := s.datastore.listRecipes(filter)
 	c.JSON(http.StatusOK, res)
 }
 

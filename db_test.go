@@ -106,7 +106,7 @@ var _ = Describe("Testing database object", func() {
 			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
-			actual := testDB.listRecipes(&filter{})
+			actual := testDB.listRecipes(&ListFilter{})
 			Expect(actual).NotTo(BeNil())
 			Expect(actual).To(HaveLen(0))
 		})
@@ -126,9 +126,9 @@ var _ = Describe("Testing database object", func() {
 				Name:         null.StringFrom("name3"),
 				IsVegetarian: null.BoolFrom(false),
 			}, "faketoken")
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(3))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(3))
 		})
-		It("lists non-empty table with filters", func() {
+		It("lists non-empty table with ListFilters", func() {
 			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
 			defer testDB.close()
 
@@ -162,56 +162,46 @@ var _ = Describe("Testing database object", func() {
 				Difficulty:   null.IntFrom(4),
 				IsVegetarian: null.BoolFrom(true),
 			}, "faketoken")
-			Expect(testDB.listRecipes(&filter{
-				name:  null.StringFrom("name"),
-				isSet: true,
+			Expect(testDB.listRecipes(&ListFilter{
+				Name: "name",
 			})).To(HaveLen(5))
-			Expect(testDB.listRecipes(&filter{
-				name:  null.StringFrom("5"),
-				isSet: true,
+			Expect(testDB.listRecipes(&ListFilter{
+				Name: "5",
 			})).To(HaveLen(1))
-			Expect(testDB.listRecipes(&filter{
-				name:  null.StringFrom("x"),
-				isSet: true,
+			Expect(testDB.listRecipes(&ListFilter{
+				Name: "x",
 			})).To(HaveLen(0))
-			Expect(testDB.listRecipes(&filter{
-				isVegetarian: null.BoolFrom(true),
-				isSet:        true,
+			Expect(testDB.listRecipes(&ListFilter{
+				IsVegetarian: "true",
 			})).To(HaveLen(2))
-			Expect(testDB.listRecipes(&filter{
-				difficultyTo: null.IntFrom(3),
-				isVegetarian: null.BoolFrom(true),
-				isSet:        true,
+			Expect(testDB.listRecipes(&ListFilter{
+				DifficultyTo: 3,
+				IsVegetarian: "true",
 			})).To(HaveLen(1))
-			Expect(testDB.listRecipes(&filter{
-				prepTimeTo: null.IntFrom(60),
-				isSet:      true,
+			Expect(testDB.listRecipes(&ListFilter{
+				PrepTimeTo: 60,
 			})).To(HaveLen(4))
-			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom: null.IntFrom(20),
-				prepTimeTo:   null.IntFrom(60),
-				isSet:        true,
+			Expect(testDB.listRecipes(&ListFilter{
+				PrepTimeFrom: 20,
+				PrepTimeTo:   60,
 			})).To(HaveLen(3))
-			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom: null.IntFrom(20),
-				prepTimeTo:   null.IntFrom(60),
-				difficultyTo: null.IntFrom(3),
-				isSet:        true,
+			Expect(testDB.listRecipes(&ListFilter{
+				PrepTimeFrom: 20,
+				PrepTimeTo:   60,
+				DifficultyTo: 3,
 			})).To(HaveLen(2))
-			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom:   null.IntFrom(20),
-				prepTimeTo:     null.IntFrom(60),
-				difficultyFrom: null.IntFrom(2),
-				difficultyTo:   null.IntFrom(4),
-				isSet:          true,
+			Expect(testDB.listRecipes(&ListFilter{
+				PrepTimeFrom:   20,
+				PrepTimeTo:     60,
+				DifficultyFrom: 2,
+				DifficultyTo:   4,
 			})).To(HaveLen(1))
-			Expect(testDB.listRecipes(&filter{
-				prepTimeFrom:   null.IntFrom(20),
-				prepTimeTo:     null.IntFrom(60),
-				difficultyFrom: null.IntFrom(2),
-				difficultyTo:   null.IntFrom(4),
-				isVegetarian:   null.BoolFrom(false),
-				isSet:          true,
+			Expect(testDB.listRecipes(&ListFilter{
+				PrepTimeFrom:   20,
+				PrepTimeTo:     60,
+				DifficultyFrom: 2,
+				DifficultyTo:   4,
+				IsVegetarian:   "false",
 			})).To(HaveLen(0))
 		})
 	})
@@ -265,7 +255,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(addedRecipe.PrepareTime.Valid).To(BeFalse())
 			Expect(addedRecipe.Difficulty.Valid).To(BeFalse())
 			Expect(addedRecipe.IsVegetarian).To(BeFalse())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(1))
 
 			addedRecipe = testDB.addRecipeByCredential(&PostRecipeArg{
 				Name:         null.StringFrom("name2"),
@@ -278,7 +268,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(addedRecipe.PrepareTime.Int64).To(Equal(int64(2)))
 			Expect(addedRecipe.Difficulty.Int64).To(Equal(int64(4)))
 			Expect(addedRecipe.IsVegetarian).To(BeFalse())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(2))
 		})
 		It("does nothing if the credential is not valid", func() {
 			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
@@ -289,7 +279,7 @@ var _ = Describe("Testing database object", func() {
 				IsVegetarian: null.BoolFrom(false),
 			}, "faild_token")
 			Expect(actual).To(BeNil())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(0))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(0))
 		})
 	})
 	Context("updating a recipe", func() {
@@ -439,7 +429,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(deletedRecipe.PrepareTime.Int64).To(Equal(int64(1)))
 			Expect(deletedRecipe.Difficulty.Int64).To(Equal(int64(2)))
 			Expect(deletedRecipe.IsVegetarian).To(BeFalse())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(1))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(1))
 		})
 		It("does nothing if the recipe doesn't exist", func() {
 			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
@@ -449,7 +439,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(deletedRecipe).To(BeNil())
 			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(2))
 		})
 		It("does nothing if the access to the recipe is not authorized", func() {
 			testDB := newSqlxPostgreSQL(testDBConnectionStringWithDatabase)
@@ -459,7 +449,7 @@ var _ = Describe("Testing database object", func() {
 			Expect(deletedRecipe).To(BeNil())
 			Expect(testDB.getRecipeByID(1)).NotTo(BeNil())
 			Expect(testDB.getRecipeByID(2)).NotTo(BeNil())
-			Expect(testDB.listRecipes(&filter{})).To(HaveLen(2))
+			Expect(testDB.listRecipes(&ListFilter{})).To(HaveLen(2))
 		})
 	})
 	Context("rating a recipe", func() {
