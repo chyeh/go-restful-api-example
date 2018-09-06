@@ -48,7 +48,7 @@ func (s *apiServer) routes() {
 
 func (s *apiServer) getRecipes(c *gin.Context) {
 	filter := &ListFilter{}
-	if err := c.BindQuery(filter); err != nil {
+	if err := c.ShouldBindQuery(filter); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -58,7 +58,7 @@ func (s *apiServer) getRecipes(c *gin.Context) {
 
 func (s *apiServer) postRecipe(c *gin.Context) {
 	arg := &PostRecipeArg{}
-	if err := c.BindJSON(arg); err != nil {
+	if err := c.ShouldBindJSON(arg); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -98,7 +98,7 @@ func (s *apiServer) putRecipe(c *gin.Context) {
 	}
 
 	arg := &PutRecipeArg{}
-	if err := c.BindJSON(arg); err != nil {
+	if err := c.ShouldBindJSON(arg); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
@@ -140,7 +140,7 @@ func (s *apiServer) postRateRecipe(c *gin.Context) {
 	}
 
 	arg := &PostRateRecipeArg{}
-	if err := c.BindJSON(arg); err != nil {
+	if err := c.ShouldBindJSON(arg); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
