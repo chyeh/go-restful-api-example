@@ -15,6 +15,12 @@ type apiServerConfig struct {
 	connectionString string
 }
 
+func (c *apiServerConfig) load(cfg *applicationConfig) {
+	c.host = cfg.host
+	c.port = cfg.port
+	c.connectionString = cfg.dsn
+}
+
 type apiServer struct {
 	httpServer *ginHTTPServer
 	address    string
@@ -33,7 +39,7 @@ func newAPIServer(cfg apiServerConfig) *apiServer {
 }
 
 func (s *apiServer) run() {
-	fmt.Println("starting http service on:", s.address)
+	fmt.Println("starting http service on", s.address)
 	s.httpServer.run(s.address)
 }
 
