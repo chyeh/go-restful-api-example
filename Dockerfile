@@ -1,7 +1,7 @@
 FROM golang:1.8-alpine
-RUN mkdir /app
-ADD . /app/
-WORKDIR /app
-RUN go build -o main .
-CMD ["/app/main"]
+RUN mkdir -p /go/src
+ADD . /go/src/app/
+WORKDIR /go/src/app
+RUN go install .
+CMD ["app"]
 EXPOSE 80
