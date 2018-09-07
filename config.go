@@ -5,13 +5,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
+var (
 	defaultHost = ""
 	defaultPort = "8080"
-	defaultDSN  = "postgres://hellofresh:hellofresh@localhost:5432/hellofresh?sslmode=disable"
+	defaultDSN  = ""
 )
 
-var commandlineConfig = newCommandLineConfig()
+const noDefaultValue = ""
 
 func newCommandLineConfig() *viper.Viper {
 	v := viper.New()
@@ -19,18 +19,40 @@ func newCommandLineConfig() *viper.Viper {
 	if !pflag.Parsed() {
 		pflag.Parse()
 	}
-	loadCommandLineConfig(v)
+	loadCommandLineFlag(v, pflag.CommandLine)
 	return v
 }
 
 func defineFlags() {
-	pflag.String("host", defaultHost, "host that the http service binds to")
-	pflag.String("port", defaultPort, "port that the http service listens to")
-	pflag.String("dsn", defaultDSN, "postgreSQL database connection string")
+	pflag.String("host", noDefaultValue, "host that the http service binds to")
+	pflag.String("port", noDefaultValue, "port that the http service listens to")
+	pflag.String("dsn", noDefaultValue, "postgreSQL database connection string")
 }
 
-func loadCommandLineConfig(v *viper.Viper) {
-	v.BindPFlags(pflag.CommandLine)
+func loadCommandLineFlag(v *viper.Viper, flagSet *pflag.FlagSet) {
+	flagSet.VisitAll(func(flag *pflag.Flag) {
+		if !flag.Changed {
+			return
+		}
+		if err := v.BindPFlag(flag.Name, flag); err != nil {
+			return
+		}
+	})
+}
+
+func newEnvironmentVariableConfig() *viper.Viper {
+	v := viper.New()
+	loadEnvironmentVariables(v)
+	return v
+}
+
+func loadEnvironmentVariables(v *viper.Viper) {
+	envs := []string{"HOST", "PORT", "DSN"}
+	for _, env := range envs {
+		if err := v.BindEnv(env); err != nil {
+			panic(err)
+		}
+	}
 }
 
 type applicationConfig struct {
@@ -48,7 +70,13 @@ func newApplicationConfig() *applicationConfig {
 }
 
 func (c *applicationConfig) bind(v *viper.Viper) {
-	c.host = v.GetString("host")
-	c.port = v.GetString("port")
-	c.dsn = v.GetString("dsn")
+	if v.IsSet("host") {
+		c.host = v.GetString("host")
+	}
+	if v.IsSet("port") {
+		c.port = v.GetString("port")
+	}
+	if v.IsSet("dsn") {
+		c.dsn = v.GetString("dsn")
+	}
 }

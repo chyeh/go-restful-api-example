@@ -2,7 +2,8 @@ package main
 
 func main() {
 	appCfg := newApplicationConfig()
-	appCfg.bind(commandlineConfig)
+	appCfg.bind(newEnvironmentVariableConfig())
+	appCfg.bind(newCommandLineConfig())
 
 	var apiCfg apiServerConfig
 	apiCfg.load(appCfg)
