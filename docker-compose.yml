@@ -9,6 +9,7 @@ services:
         environment:
             PORT: '80'
             DSN: 'postgres://hellofresh:hellofresh@postgres:5432/hellofresh?sslmode=disable'
+        command: ["scripts/wait-for-postgres.sh", "postgres", "hellofresh", "hellofresh", "hellofresh", "app"]
     postgres:
         image: onjin/alpine-postgres:9.5
         restart: unless-stopped
