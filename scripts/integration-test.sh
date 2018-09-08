@@ -1,16 +1,7 @@
 #!/bin/bash
 
-export COMPOSE_PROJECT_NAME="integration_test"
-docker-compose up -d
-
-until PGPASSWORD=hellofresh psql -h localhost -U hellofresh sslmode=disable -c '\q' &>/dev/null; do
-  >&2 echo "postgres is not ready, try again"
-  sleep 1
-done
-
 cd scripts
-./init-db-schema.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh >/dev/null
-./init-db-user-data.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh >/dev/null
+./set-up-test-environment.sh "integration_test"
 
 HTTP_CODE=$(
 curl -sL -w "%{http_code}\\n" \
@@ -87,6 +78,4 @@ else
     echo "[ FAILED ] DELETE /recipes/{id}"
 fi
 
-./drop-db-schema.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh >/dev/null
-
-docker rm -f $(docker ps -aqf "name=integration_test") >/dev/null
+./tear-down-test-environment.sh "integration_test"
