@@ -53,6 +53,8 @@ func (md *mockDatastore) rateAndGetRecipe(arg *PostRateRecipeArg, id int) *Recip
 	return nil
 }
 
+func (md *mockDatastore) close() {}
+
 func newTestAPIServer(data interface{}) *apiServer {
 	md := &mockDatastore{
 		dataFunc: func() interface{} {

@@ -12,6 +12,7 @@ type datastore interface {
 	updateAndGetRecipeByCredential(*PutRecipeArg, int, string) *Recipe
 	deleteAndGetRecipeByCredential(int, string) *Recipe
 	rateAndGetRecipe(*PostRateRecipeArg, int) *Recipe
+	close()
 }
 
 type sqlxPostgreSQL struct {

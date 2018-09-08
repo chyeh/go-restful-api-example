@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,6 +43,16 @@ func newAPIServer(cfg apiServerConfig) *apiServer {
 func (s *apiServer) run() {
 	fmt.Println("starting http service on", s.address)
 	s.httpServer.run(s.address)
+}
+
+func (s *apiServer) shutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		panic(err)
+	}
+	s.datastore.close()
+	fmt.Println("service stopped")
 }
 
 func (s *apiServer) routes() {

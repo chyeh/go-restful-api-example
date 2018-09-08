@@ -11,6 +11,7 @@ import (
 )
 
 type ginHTTPServer struct {
+	*http.Server
 	router *gin.Engine
 }
 
@@ -19,12 +20,14 @@ func newGinHTTPServer() *ginHTTPServer {
 	router := gin.New()
 	router.Use(buildPanicProcessor(defaultPanicProcessor))
 	return &ginHTTPServer{
-		router: router,
+		&http.Server{Handler: router},
+		router,
 	}
 }
 
 func (s *ginHTTPServer) run(address string) {
-	if err := s.router.Run(address); err != nil {
+	s.Addr = address
+	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		fmt.Fprintln(os.Stderr, "error starting http service:", err)
 		os.Exit(1)
 	}
