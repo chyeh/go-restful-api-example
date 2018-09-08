@@ -10,3 +10,8 @@ done
 
 ./init-db-schema.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh >/dev/null
 ./init-db-user-data.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh >/dev/null
+
+until curl localhost &>/dev/null; do
+  >&2 echo "go application is not ready, try again"
+  sleep 1
+done

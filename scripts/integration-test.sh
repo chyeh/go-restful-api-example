@@ -16,7 +16,7 @@ fi
 
 HTTP_CODE=$( \
 curl -sL -w "%{http_code}\\n" \
-     -X POST http://10.20.30.50/recipes \
+     -X POST http://localhost/recipes \
      -H "Content-Type: application/json" \
      -H "Authorization: aGVsbG9mcmVzaDpoZWxsb2ZyZXNo" \
      -d '{"name":"Fabulous Fried Chicken","prepare_time":30,"is_vegetarian":false}' \
@@ -25,7 +25,7 @@ curl -sL -w "%{http_code}\\n" \
 if [ $HTTP_CODE -eq 200 ];then
     echo "[ PASSED ] POST /recipes"
 else
-    echo "[ FAILED ] POST /recipes [ FAILED ]"
+    echo "[ FAILED ] POST /recipes"
 fi
 
 HTTP_CODE=$(

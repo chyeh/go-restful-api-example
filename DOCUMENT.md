@@ -38,7 +38,7 @@ go test -v -ginkgo.v -test.db.host postgres://hellofresh:hellofresh@localhost:54
 
 ### Integration Test
 
-The integration test runs the application on the `localhost` with `docker-compose up -d`. Make sure the current `localhost` is not running instances that conflicts. To run the integration test, simply run the script at the root directory of the project:
+The integration test runs the application on the `localhost` with `docker-compose up -d`. Run `docker rm -f $(docker ps -aqf "name=chyeh-api-test")` in advance to make sure the current `localhost` is no running instance started by previous `docker-compose up -d` command . To run the integration test, run the script at the root directory of the project:
 
 ```
 scripts/integration-test.sh
