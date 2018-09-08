@@ -2,6 +2,7 @@ version: '2'
 services:
     go:
         build: .
+        image: chyeh-recipe-api
         ports:
             - "80:80"
         links:
