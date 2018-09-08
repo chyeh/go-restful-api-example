@@ -10,13 +10,14 @@ docker-compose up -d
 
 ### Binary Executable
 
-To run the application by the executable, build the application by `go build`:
+Make sure the PostgreSQL service for the application is up. In the following example, the PostgreSQL service is running on `localhost:5432`. To run the application, build the application by `go build` and run the application by the following command:
 
 ```shell
 go build -o app
+./app --dsn "postgres://hellofresh:hellofresh@localhost:5432/hellofresh?sslmode=disable"
 ```
 
-The flags of the `app` command are as follows:
+The description of the flags is as follows:
 
 |   Flag   | Type       | Description                                                  |
 | :------: | ---------- | ------------------------------------------------------------ |
@@ -49,6 +50,7 @@ scripts/integration-test.sh
 To test the application manually, run scripts that set up the environment on `localhost` in advance:
 
 ```shell
+docker-compose up -d
 cd scripts
 ./init-db-schema.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh
 ./init-db-user-data.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh
@@ -69,7 +71,7 @@ For testing manually by `curl` command, examples are in the `scripts/integration
 
 ## API Specifications
 
-There are several terms used in the following. The descriptions are as follow:
+There are several terms used in the following. The description are as follow:
 
 * `Protected`: For the API endpoints that are marked as `protected`, the access token must be set with the key `Authorization` in the **HTTP request header**.
 
@@ -118,7 +120,7 @@ There are several terms used in the following. The descriptions are as follow:
   ]
   ```
 
-  The descriptions of the fields in the JSON data are as follows:
+  The description of the fields in the JSON data are as follows:
 
   * `id`: The ID of the recipe.
   * `name`: The name of the recipe.
