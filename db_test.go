@@ -7,10 +7,13 @@ import (
 	null "gopkg.in/guregu/null.v3"
 )
 
+var (
+	testDBConnectionString             string
+	testDBConnectionStringWithDatabase string
+)
+
 const (
-	testDBConnectionString             = "postgres://hellofresh:hellofresh@localhost:5432/?sslmode=disable"
-	testDBConnectionStringWithDatabase = "postgres://hellofresh:hellofresh@localhost:5432/test_hellofresh?sslmode=disable"
-	testRecipeTableSchema              = `
+	testRecipeTableSchema = `
 	CREATE TABLE recipe(
 		r_id SERIAL PRIMARY KEY,
 		r_name VARCHAR(512) NOT NULL,
@@ -45,7 +48,7 @@ const (
 	`
 )
 
-var _ = Describe("Testing database object", func() {
+var _ = Describe("Testing database object", skipIfDatabaseIsNotSet(func() {
 	BeforeEach(func() {
 		testDB := newSqlxPostgreSQL(testDBConnectionString)
 		defer testDB.close()
@@ -531,4 +534,4 @@ var _ = Describe("Testing database object", func() {
 			Expect(actual).To(BeNil())
 		})
 	})
-})
+}))
