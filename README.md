@@ -1,114 +1,251 @@
-# HelloFresh Senior Backend Developer Test
+## Run
 
-Hello and thanks for taking the time to try this out.
+### Docker Compose
 
-The goal of this test is to assert (to some degree) your coding and architectural skills. You're given a simple problem so you can focus on showcasing development techniques. We encourage you to overengineer the solution a little to show off what you can do - assume you're building a production-ready application that other developers will need to work on and add to over time.
+To run the application by `docker-compose` on the `localhost`, simply run the following command:
 
-We accept tests written in PHP, Go, or Python - your choice of language should be one you can demonstrate being comfortable coding in, to maximise your chance of a positive code review.
+```shell
+docker-compose up -d
+```
 
-You're **allowed and encouraged** to use third party libraries, as long as you put them together yourself **without relying on a framework or microframework** to do it for you. An effective developer knows what to build and what to reuse, but also how his/her tools work. Be prepared to answer some questions about those libraries, like why you chose them and what other alternatives you're familiar with.
+### Binary Executable
 
-As this is a code review process, please avoid adding generated code to the project. This makes our jobs as reviewers more difficult, as we can't review code you didn't write. This means avoiding libraries like _Propel ORM_, which generates thousands of lines of code in stub files.
+Make sure the PostgreSQL service for the application is up. In the following example, the PostgreSQL service is running on `localhost:5432`. To run the application, build the application by `go build` and run the application by the following command:
 
-_Note: While we love open source here at HelloFresh, please do not create a public repo with your test in! This challenge is only shared with people interviewing, and for obvious reasons we'd like it to remain this way._
+```shell
+go build -o app
+./app --dsn "postgres://hellofresh:hellofresh@localhost:5432/hellofresh?sslmode=disable"
+```
 
-## Prerequsites
+The description of the flags is as follows:
 
-We use [Docker](https://www.docker.com/products/docker) to administer this test. This ensures that we get an identical result to you when we test your application out, and it also matches our internal development workflows. If you don't have it already, you'll need Docker installed on your machine. **The application MUST run in the Docker containers** - if it doesn't we cannot accept your submission. You **MAY** edit the containers or add additional ones if you like, but this **MUST** be clearly documented.
+|   Flag   | Type       | Description                                                  |
+| :------: | ---------- | ------------------------------------------------------------ |
+| `--dsn`  | **string** | PostgreSQL database connection string. It **must be set** or the application occurs panic. |
+| `--host` | **string** | Host that the http service binds to.                         |
+| `--port` | **string** | Port that the http service listens to. The default value is `8080`. |
 
-We have provided some containers to help build your application in either PHP, Go or Python, with a variety of persistence layers available to use.
 
-### Technology
 
-- Valid PHP 7.2, Go 1.8, or Python 3.6 code
-- Persist data to either Postgres, Redis, or MongoDB (in the provided containers).
-    - Postgres connection details:
-        - host: `postgres`
-        - port: `5432`
-        - dbname: `hellofresh`
-        - username: `hellofresh`
-        - password: `hellofresh`
-    - Redis connection details:
-        - host: `redis`
-        - port: `6379`
-    - MongoDB connection details:
-        - host: `mongodb`
-        - port: `27017`
-- Use the provided `docker-compose.yml` file in the root of this repository. You are free to add more containers to this if you like.
+## Test
 
-## Instructions
+### Unit Test
 
-1. Clone this repository.
-- Create a new branch called `dev`.
-- Run `docker-compose up -d` to start the development environment.
-    - If you want to use Go, uncomment the Go container in the `docker-compose.yml` file. Add the commands you need in there to execute the application.
-    - If you want to use Python, uncomment the Python container in the `docker-compose.yml` file first. Add the commands you need in there to execute the application.
-- Visit `http://localhost` to see the contents of the web container and develop your application.
-- Create a pull request from your `dev` branch to the master branch. This PR should contain setup instructions for your application and a breakdown of the technologies & packages you chose to use, why you chose to use them, and the design decisions you made.
-- Reply to the thread you're having with our HR department telling them we can start reviewing your code.
+The unit test requires the connection to the database. The PostgreSQL host is specify by the flag `-test.db.host`. If the flag is not set, all the data layer tests are skipped. The data layer tests creates and drops a database `test_hellofresh`. The following command is an example of connecting to the PostgreSQL host running on `localhost:5432`:
 
-## Requirements
+```shell
+go test -v -ginkgo.v -test.db.host postgres://hellofresh:hellofresh@localhost:5432/
+```
 
-We'd like you to build a simple Recipes API. The API **MUST** conform to REST practices and **MUST** provide the following functionality:
+### Integration Test
 
-- List, create, read, update, and delete Recipes
-- Search recipes
-- Rate recipes
+The integration test runs the application on the `localhost` with `docker-compose up -d`. Run `docker rm -f $(docker ps -aqf "name=chyeh-api-test")` in advance to make sure the current `localhost` is no running instance started by previous `docker-compose up -d` command . To run the integration test, run the script at the root directory of the project:
 
-### Endpoints
+```
+scripts/integration-test.sh
+```
 
-Your application **MUST** conform to the following endpoint structure and return the HTTP status codes appropriate to each operation. Endpoints specified as protected below **SHOULD** require authentication to view. The method of authentication is up to you.
+### Manual Test
 
-##### Recipes
+To test the application manually, run scripts that set up the environment on `localhost` in advance:
 
-| Name   | Method      | URL                    | Protected |
-| ---    | ---         | ---                    | ---       |
-| List   | `GET`       | `/recipes`             | ✘         |
-| Create | `POST`      | `/recipes`             | ✓         |
-| Get    | `GET`       | `/recipes/{id}`        | ✘         |
-| Update | `PUT/PATCH` | `/recipes/{id}`        | ✓         |
-| Delete | `DELETE`    | `/recipes/{id}`        | ✓         |
-| Rate   | `POST`      | `/recipes/{id}/rating` | ✘         |
+```shell
+docker-compose up -d
+cd scripts
+./init-db-schema.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh
+./init-db-user-data.sh postgres://hellofresh:hellofresh@localhost:5432/hellofresh
+```
 
-An endpoint for recipe search functionality **MUST** also be implemented. The HTTP method and endpoint for this **MUST** be clearly documented.
+The `init-db-schema.sh` script creates the schema in the database. The `init-db-user-data.sh` inserts several users and their access tokens for testing as follows:
 
-### Schema
+| User       | Access Token                   |
+| ---------- | ------------------------------ |
+| hellofresh | `aGVsbG9mcmVzaDpoZWxsb2ZyZXNo` |
+| chyeh      | `Y2h5ZWg6Y2h5ZWg=`             |
+| foo        | `Zm9vOmJhcg==`                 |
+| user       | `dXNlcjpwYXNzd29yZA==`         |
 
-- **Recipe**
-    - Unique ID
-    - Name
-    - Prep time
-    - Difficulty (1-3)
-    - Vegetarian (boolean)
+For testing manually by `curl` command, examples are in the `scripts/integration-test.sh` file.
 
-Additionally, recipes can be rated many times from 1-5 and a rating is never overwritten.
 
-If you need a more visual idea of how the data should be represented, [take a look at one of our recipe cards](https://ddw4dkk7s1lkt.cloudfront.net/card/hdp-chicken-with-farro-75b306ff.pdf?t=20160927003916).
 
-## Evaluation criteria
+## API Specifications
 
-These are some aspects we pay particular attention to:
+There are several terms used in the following. The description are as follow:
 
-- You **MUST** use packages, but you **MUST NOT** use a web-app framework or microframework. That is, you can use [symfony/dependency-injection](https://packagist.org/packages/symfony/dependency-injection) but not [symfony/symfony](https://packagist.org/packages/symfony/symfony).
-- Your application **MUST** run within the containers. Please provide short setup instructions.
-- The API **MUST** return valid JSON and **MUST** follow the endpoints set out above.
-- You **MUST** write testable code and demonstrate unit testing it (for clarity,  PHPUnit is not considered a framework as per the first point above. We encourage you to use PHPUnit or any other kind of **testing** framework).
-- You **SHOULD** pay attention to best security practices.
-- You **SHOULD** follow SOLID principles where appropriate.
-- You do **NOT** have to build a UI for this API.
+* `Protected`: For the API endpoints that are marked as `protected`, the access token must be set with the key `Authorization` in the **HTTP request header**.
 
-The following earn you bonus points:
+* `Mandatory`: The following request arguments that are marked as `Mandatory` causes `500 internal server error` response if not set.
 
-- Your answers during code review
-- An informative, detailed description in the PR
-- Setup with a one liner or a script
-- Content negotiation
-- Pagination
-- Using any kind of Database Access Abstraction
-- Other types of testing - e.g. integration tests
-- Following the industry standard style guide for the language you choose to use - `PSR-2`, `gofmt`, etc.
-- A git history (even if brief) with clear, concise commit messages.
+* **boolean**: The following request arguments that are marked as type **boolean** accept `1`, `t`, `T`, `TRUE`, `true`, `True` as **true** value and `0`, `f`, `F`, `FALSE`, `false`, `False` as **false** value.
 
----
+* `RECIPE JSON` & `RECIPE JSON ARRAY`:
 
-Good luck!
+  The following JSON data is an example of a HTTP response body from the API endpoints that marked with `RECIPE JSON`.
+
+  ```json
+  {
+      "id":1,
+      "name":"name1",
+      "prepare_time":null,
+      "difficulty":null,
+      "is_vegetarian":false,
+      "rating": 0,
+      "rated_num": 0
+  }
+  ```
+
+  The following JSON data is an example of a HTTP response body from the endpoint of searching recipes that marked with `RECIPE JSON ARRAY`:
+
+  ```json
+  [
+      {
+          "id":1,
+          "name":"name1",
+          "prepare_time":null,
+          "difficulty":null,
+          "is_vegetarian":false,
+          "rating": 0,
+          "rated_num": 0
+      },
+      {
+          "id":11,
+          "name":"name11",
+          "prepare_time":1,
+          "difficulty":2,
+          "is_vegetarian":true,
+          "rating": 0,
+          "rated_num": 0
+      }
+  ]
+  ```
+
+  The description of the fields in the JSON data are as follows:
+
+  * `id`: The ID of the recipe.
+  * `name`: The name of the recipe.
+  * `prepare_time`: The preparation time of the recipe. The unit of the time is minute.
+  * `difficulty`: The difficulty of the recipe.
+  * `is_vegetarian`: Specify if the recipe is vegetarian or not.
+  * `rating`: The current rating of the recipe.
+  * `rated_num`: The number of times the recipe is being rated.
+
+### `GET /recipes`: Search Recipes
+
+#### Request
+
+Pagination and filtering arguments are supported. 
+
+##### Paging
+
+Paging arguments are defined in the **HTTP request header**.
+
+| Argument      | Type        | Description                                                  |
+| ------------- | ----------- | ------------------------------------------------------------ |
+| `page-number` | **integer** | Specify the page number. Negative value causes `500 internal server error` response. An empty string value is consider not set. The default value is `1`. |
+| `page-size`   | **integer** | Specify the number of recipes in each page. Negative value causes `500 internal server error` response. An empty string value is consider not set. The default value is `20`. |
+
+##### Filtering
+
+Filtering arguments are defined in the **URL query string**.
+
+| Argument            | Type        | Description                                                  |
+| ------------------- | ----------- | ------------------------------------------------------------ |
+| `name`              | **string**  | Find recipes whose names **contains** the value. An empty string value is consider not set. |
+| `prepare_time_from` | **integer** | Find recipes whose preparation time is **greater than or equal to** the value |
+| `prepare_time_to`   | **integer** | Find recipes whose preparation time is **less than or equal to** the value |
+| `difficulty_from`   | **integer** | Find recipes whose difficulty time is **greater than or equal to** the value |
+| `difficulty_to`     | **integer** | Find recipes whose preparation time is **less than or equal to** the value |
+| `is_vegetarian`     | **boolean** | Find recipes which are **vegetarian** or **not vegetarian**. An empty value is consider not set. An invalid **boolean** value causes `400 bad request` response. |
+
+#### Response `RECIPE JSON ARRAY`
+
+The HTTP response body contains the result of the search according to the paging and filtering arguments.
+
+### `POST /recipes`: Add a New Recipe `Protected`
+
+#### Request
+
+The aruments are defined by **JSON data** in the HTTP request.
+
+| Field           | Type        | Description                                                  | Description |
+| --------------- | ----------- | ------------------------------------------------------------ | ----------- |
+| `name`          | **string**  | `Mandatory` An empty string value is consider not set.       |             |
+| `prepare_time`  | **integer** | The value must be **greater than or equal to** `1` or it causes `500 internal server error` response |             |
+| `difficulty`    | **integer** | The value must be **greater than or equal to** `1` and **less than or equal to** `3` or it causes `500 internal server error` response |             |
+| `is_vegetarian` | **boolean** | `Mandatory` An invalid **boolean** value causes `400 bad request` response. |             |
+
+#### Response `RECIPE JSON`
+
+The HTTP response body contains the data of the recipe that is just added.
+
+### `GET /recipes/{id}`: Get an Existent Recipe
+
+#### Request
+
+The argument of the recipe ID is defined by the **URL parameter**.
+
+| Type        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| **integer** | If there is no recipe that has an ID matching the value of the argument, it responses with `404 not found`. |
+
+#### Response `RECIPE JSON`
+
+The HTTP response body contains the data of the specified recipe.
+
+### `PUT /recipes/{id}`: Modify an Existent Recipe `Protected`
+
+#### Request
+
+The argument of the recipe ID is defined by the **URL parameter**.
+
+| Type        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| **integer** | If there is no recipe that has an ID matching the value of the argument, it responses with `404 not found`. |
+
+The aruments for updating the recipe are defined by the **JSON data** in the HTTP request body.
+
+| Field           | Type        | Description                                                  |
+| --------------- | ----------- | ------------------------------------------------------------ |
+| `name`          | **string**  | An empty string value causes `500 internal server error` response. |
+| `prepare_time`  | **integer** | The value must be **greater than or equal to** `1` or it causes `500 internal server error` response. |
+| `difficulty`    | **integer** | The value must be **greater than or equal to** `1` and **less than or equal to** 3 or it causes `500 internal server error` response. |
+| `is_vegetarian` | **boolean** | An invalid **boolean** value causes `400 bad request` response. |
+
+#### Response `RECIPE JSON`
+
+The HTTP response body contains the data of the recipe that is just modified.
+
+### `DELETE /recipes/{id}`: Delete an Existent Recipe `Protected`
+
+#### Request
+
+The argument of the recipe ID is defined by the **URL parameter**.
+
+| Type        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| **integer** | If there is no recipe that has an ID matching the value of the argument, it responses with `404 not found`. |
+
+#### Response `RECIPE JSON`
+
+The HTTP response body contains the data of the recipe that is just deleted.
+
+### `POST /recipes/{id}/rating`: Rate an Existent Recipe
+
+#### Request
+
+The argument of the recipe ID is defined by the **URL parameter**.
+
+| Type        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| **integer** | If there is no recipe that has an ID matching the value of the argument, it responses with `404 not found`. |
+
+The arument of rating the recipe is defined by **JSON data** in the HTTP request.
+
+| Field    | Type        | Description                                                  |
+| -------- | ----------- | ------------------------------------------------------------ |
+| `rating` | **integer** | `Mandatory` The value must be **greater than or equal to** `1` and **less than or equal to** `5`. |
+
+#### Response `RECIPE JSON`
+
+The HTTP response body contains the data of the recipe that is just rated.
